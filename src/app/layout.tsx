@@ -3,9 +3,9 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
 import { Inter } from "next/font/google";
-import BackupModeWarning from "@/components/BackupModeWarning";
 import BuyMeCoffeeWidget from "@/components/BuyMeCoffeeWidget";
 import { AuthProvider } from "@/components/AuthProvider";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -55,15 +55,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="dark">
-            <BackupModeWarning />
-            {children}
-            <BuyMeCoffeeWidget />
-          </ThemeProvider>
-        </AuthProvider>
-      </body>
+      <head>
+      <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4913461612731337"
+          crossOrigin="anonymous"
+        />
+        <body className={inter.className}>
+          <AuthProvider>
+            <ThemeProvider attribute="class" defaultTheme="dark">
+              {children}
+              <BuyMeCoffeeWidget />
+            </ThemeProvider>
+          </AuthProvider>
+        </body>
+      </head>
     </html>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { TextPreview } from "@/components/previews/TextPreview";
 import { ImagePreview } from "@/components/previews/ImagePreview";
@@ -39,7 +39,8 @@ interface PreviewData {
   fileType?: string;
 }
 
-export default function FilePage({ params }: { params: { filename: string } }) {
+export default function FilePage({ params }: { params: Promise<{ filename: string }> }) {
+  const unwrappedParams = use(params);
   const [fileDetails, setFileDetails] = useState<FileDetails | null>(null);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export default function FilePage({ params }: { params: { filename: string } }) {
   const { handleDownload, handleCopy } = useFileManagement();
   const [loading, setLoading] = useState(true);
 
-  const fileName = decodeURIComponent(params.filename);
+  const fileName = decodeURIComponent(unwrappedParams.filename);
   const fileExtension = fileName
     .substring(fileName.lastIndexOf("."))
     .toLowerCase();
@@ -70,20 +71,6 @@ export default function FilePage({ params }: { params: { filename: string } }) {
       }
     };
 
-    const incrementFileViews = async () => {
-      try {
-        const response = await fetch(
-          `/api/views?filename=${encodeURIComponent(fileName)}`,
-          {
-            method: "POST",
-          },
-        );
-        if (!response.ok) throw new Error("Failed to increment file views");
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
     const fetchPreviewData = async () => {
       try {
         const response = await fetch(
@@ -99,8 +86,19 @@ export default function FilePage({ params }: { params: { filename: string } }) {
       }
     };
 
+    const incrementViewCount = async () => {
+      try {
+        const response = await fetch(`/api/views?filename=${encodeURIComponent(fileName)}`, {
+          method: "POST",
+        });
+        if (!response.ok) throw new Error("Failed to increment view count");
+      } catch (err) {
+        console.error("Failed to increment view count: ", err);
+      }
+    }
+
     fetchFileDetails();
-    incrementFileViews();
+    incrementViewCount();
     fetchPreviewData();
   }, [fileName]);
 
@@ -146,31 +144,19 @@ export default function FilePage({ params }: { params: { filename: string } }) {
   }
 
   function handleFilenameCopy(filename: string) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard
-        .writeText(`${filename}`)
-        .then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        })
-        .catch((err) => {
-          console.error("Failed to copy text: ", err);
-        });
-    } else {
-      // Fallback for browsers that don't support the Clipboard API
-      const textArea = document.createElement("textarea");
-      textArea.value = `${filename}`;
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand("copy");
+    if (!filename) return;
+
+    // Use only the modern Clipboard API
+    navigator.clipboard.writeText(filename)
+      .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error("Fallback: Oops, unable to copy", err);
-      }
-      document.body.removeChild(textArea);
-    }
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+        // Show user feedback if copy fails
+        setError("Failed to copy filename to clipboard");
+      });
   }
 
   if (loading) {

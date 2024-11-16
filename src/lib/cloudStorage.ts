@@ -9,6 +9,10 @@ export const cloudStorage = {
     await blob.makePublic(); // Make the file public
     return filename;
   },
+  createWriteStream: (filename: string) => {
+    const blob = bucket.file(filename);
+    return blob.createWriteStream();
+  },
   getWriteStream: (filename: string) => {
     const blob = bucket.file(filename);
     return blob.createWriteStream();
