@@ -52,11 +52,11 @@ export default function Home() {
       <Toaster
         position="top-right"
         toastOptions={{
-          className: '',
+          className: "",
           style: {
             zIndex: 9999,
-            top: '1rem',
-            right: '1rem',
+            top: "1rem",
+            right: "1rem",
           },
         }}
       />

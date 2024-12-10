@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 interface TooltipProps {
   content: string;
-  children: React.ReactElement;
+  children: React.ReactElement<any>;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {

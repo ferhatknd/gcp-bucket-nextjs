@@ -89,7 +89,7 @@ export function FileUploader({
                   onClick={handleCopyApiKey}
                   title="Click to copy"
                 >
-                  {showApiKey ? session?.user?.apiKey : '•'.repeat(40)}
+                  {showApiKey ? session?.user?.apiKey : "•".repeat(40)}
                 </span>
                 <Button
                   variant="ghost"
@@ -152,7 +152,7 @@ export function FileUploader({
                     or drag and drop
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
-                    Max file size: 6 GB
+                    Max file size: 3 GB
                   </p>
                 </div>
               ) : (

@@ -72,9 +72,7 @@ export function Header() {
                 href="/files/manage"
                 className="text-primary hover:text-primary/80 transition-colors duration-300 relative group flex items-center"
               >
-                <span className="hidden sm:inline">
-                  Click here
-                </span>
+                <span className="hidden sm:inline">Click here</span>
                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out"></span>
               </Link>
               <span className="text-primary">to manage your files</span>

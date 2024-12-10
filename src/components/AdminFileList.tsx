@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { JSX, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";

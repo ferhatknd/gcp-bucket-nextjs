@@ -39,7 +39,11 @@ interface PreviewData {
   fileType?: string;
 }
 
-export default function FilePage({ params }: { params: Promise<{ filename: string }> }) {
+export default function FilePage({
+  params,
+}: {
+  params: Promise<{ filename: string }>;
+}) {
   const unwrappedParams = use(params);
   const [fileDetails, setFileDetails] = useState<FileDetails | null>(null);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
@@ -88,14 +92,17 @@ export default function FilePage({ params }: { params: Promise<{ filename: strin
 
     const incrementViewCount = async () => {
       try {
-        const response = await fetch(`/api/views?filename=${encodeURIComponent(fileName)}`, {
-          method: "POST",
-        });
+        const response = await fetch(
+          `/api/views?filename=${encodeURIComponent(fileName)}`,
+          {
+            method: "POST",
+          },
+        );
         if (!response.ok) throw new Error("Failed to increment view count");
       } catch (err) {
         console.error("Failed to increment view count: ", err);
       }
-    }
+    };
 
     fetchFileDetails();
     incrementViewCount();
@@ -147,7 +154,8 @@ export default function FilePage({ params }: { params: Promise<{ filename: strin
     if (!filename) return;
 
     // Use only the modern Clipboard API
-    navigator.clipboard.writeText(filename)
+    navigator.clipboard
+      .writeText(filename)
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
