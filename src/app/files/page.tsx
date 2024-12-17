@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { useFileManagement } from "@/hooks/useFileManagement";
+import { SearchBar } from "@/components/SearchBar";
 
 const ThemeSwitch = dynamic(
   () => import("@/components/ThemeSwitch").then((mod) => mod.default),
@@ -12,6 +13,10 @@ const ThemeSwitch = dynamic(
 );
 const HomeIcon = dynamic(
   () => import("@/components/Icons").then((mod) => mod.HomeIcon),
+  { ssr: false },
+);
+const ManageIcon = dynamic(
+  () => import("@/components/Icons").then((mod) => mod.ManageIcon),
   { ssr: false },
 );
 const Card = dynamic(
@@ -52,6 +57,8 @@ const FilesPage = () => {
     totalFiles,
     totalSize,
     setDisabledPagination,
+    searchTerm,
+    handleSearch,
   } = useFileManagement(true);
   const router = useRouter();
 
@@ -81,10 +88,26 @@ const FilesPage = () => {
       </header>
       <main className="flex-grow container mx-auto px-4 py-6 sm:py-12 sm:px-6 lg:px-8 max-w-4xl">
         <Card className="shadow-lg border border-primary/10 rounded-xl overflow-hidden">
-          <CardHeader className="bg-primary/5 border-b border-primary/10 p-4 sm:p-6">
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-center sm:text-left text-primary flex items-center justify-between">
-              File Manager
-            </CardTitle>
+        <CardHeader className="bg-primary/5 border-b border-primary/10 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <CardTitle className="text-2xl sm:text-3xl font-bold text-primary">
+                File Manager
+              </CardTitle>
+              <Button
+                onClick={() => router.push("/files/manage")}
+                variant={"outline"}
+                className="transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:text-primary-foreground whitespace-nowrap"
+              >
+                <ManageIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                Manage Files
+              </Button>
+            </div>
+            <div className="mt-4">
+              <SearchBar
+                searchTerm={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+            </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             {loading ? (
