@@ -26,7 +26,7 @@ const Header = dynamic(
   { ssr: false, loading: () => <Loading isLoading={true} /> },
 );
 const FileManager = dynamic(
-  () => import("@/components/FileManager").then((mod) => mod.FileManager),
+  () => import("@/components/file/FileManager").then((mod) => mod.FileManager),
   { ssr: false, loading: () => <LoadingIndicator loading="file manager" /> },
 );
 const Footer = dynamic(

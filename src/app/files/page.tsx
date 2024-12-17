@@ -41,7 +41,7 @@ const LoadingIndicator = dynamic(
   { ssr: false },
 );
 const FileContent = dynamic(
-  () => import("@/components/FileManager").then((mod) => mod.FileContent),
+  () => import("@/components/file/FileManager").then((mod) => mod.FileContent),
   { ssr: false, loading: () => <LoadingIndicator loading="files" /> },
 );
 
@@ -88,7 +88,7 @@ const FilesPage = () => {
       </header>
       <main className="flex-grow container mx-auto px-4 py-6 sm:py-12 sm:px-6 lg:px-8 max-w-4xl">
         <Card className="shadow-lg border border-primary/10 rounded-xl overflow-hidden">
-        <CardHeader className="bg-primary/5 border-b border-primary/10 p-4 sm:p-6">
+          <CardHeader className="bg-primary/5 border-b border-primary/10 p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <CardTitle className="text-2xl sm:text-3xl font-bold text-primary">
                 File Manager

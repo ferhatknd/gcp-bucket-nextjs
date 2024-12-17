@@ -14,7 +14,7 @@ const LoadingIndicator = dynamic(
   { ssr: false },
 );
 const LoginForm = dynamic(
-  () => import("@/components/LoginForm").then((mod) => mod.LoginForm),
+  () => import("@/components/auth/LoginForm").then((mod) => mod.LoginForm),
   {
     ssr: false,
     loading: () => <LoadingIndicator loading="login form" />,

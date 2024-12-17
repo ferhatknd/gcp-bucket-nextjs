@@ -40,14 +40,14 @@ const LoadingIndicator = dynamic(
   { ssr: false },
 );
 const AdminFileManager = dynamic(
-  () => import("@/components/AdminFileManager").then((mod) => mod.default),
+  () => import("@/components/file/AdminFileManager").then((mod) => mod.default),
   {
     ssr: false,
     loading: () => <LoadingIndicator loading="file manager" />,
   },
 );
 const APIKeyCard = dynamic(
-  () => import("@/components/APIKeyCard").then((mod) => mod.default),
+  () => import("@/components/auth/APIKeyCard").then((mod) => mod.default),
   {
     ssr: false,
     loading: () => <LoadingIndicator loading="keys" />,

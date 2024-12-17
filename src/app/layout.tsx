@@ -4,7 +4,7 @@ import "./globals.css";
 
 import { Inter } from "next/font/google";
 import BuyMeCoffeeWidget from "@/components/BuyMeCoffeeWidget";
-import { AuthProvider } from "@/components/AuthProvider";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const inter = Inter({
   subsets: ["latin"],

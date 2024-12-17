@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileUploader } from "@/hooks/useFileUploader";
-import { APIKeyInput } from "./APIKeyInput";
+import { APIKeyInput } from "../auth/APIKeyInput";
 import { DirectLinkUploader } from "./DirectLinkUploader";
 import { useState } from "react";
 import dynamic from "next/dynamic";

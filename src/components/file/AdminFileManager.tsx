@@ -25,7 +25,8 @@ const CardContent = dynamic(
   { ssr: false },
 );
 const AdminFileList = dynamic(
-  () => import("@/components/AdminFileList").then((mod) => mod.AdminFileList),
+  () =>
+    import("@/components/file/AdminFileList").then((mod) => mod.AdminFileList),
   { ssr: false, loading: () => <LoadingIndicator loading="files" /> },
 );
 

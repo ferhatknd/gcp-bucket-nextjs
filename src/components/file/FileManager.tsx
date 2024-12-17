@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useCallback } from "react";
-import { Pagination } from "./Pagination";
-import { SearchBar } from "./SearchBar";
+import { Pagination } from "../Pagination";
+import { SearchBar } from "../SearchBar";
 import { useFileManagement } from "@/hooks/useFileManagement";
 import dynamic from "next/dynamic";
-import { UserFileManager } from "@/components/UserFileManager";
+import { UserFileManager } from "@/components/file/UserFileManager";
 import { toast } from "react-hot-toast";
 
 const LoadingIndicator = dynamic(
@@ -13,11 +13,12 @@ const LoadingIndicator = dynamic(
   { ssr: false },
 );
 const FileList = dynamic(
-  () => import("@/components/FileList").then((mod) => mod.FileList),
+  () => import("@/components/file/FileList").then((mod) => mod.FileList),
   { ssr: false, loading: () => <LoadingIndicator loading="files" /> },
 );
 const FileUploader = dynamic(
-  () => import("@/components/FileUploader").then((mod) => mod.FileUploader),
+  () =>
+    import("@/components/file/FileUploader").then((mod) => mod.FileUploader),
   { ssr: false, loading: () => <LoadingIndicator loading="uploader" /> },
 );
 

@@ -17,19 +17,21 @@ const Header = dynamic(
 );
 const UserFileManager = dynamic(
   () =>
-    import("@/components/UserFileManager").then((mod) => mod.UserFileManager),
-  { ssr: false },
+    import("@/components/file/UserFileManager").then(
+      (mod) => mod.UserFileManager,
+    ),
+  { ssr: false, loading: () => <Loading isLoading={true} /> },
 );
 
 const ManageFilesPage = () => {
-  const { data: session, status } = useSession({
+  const { status } = useSession({
     required: true,
     onUnauthenticated() {
       redirect("/auth/signin");
     },
   });
 
-  if (status === "loading") {
+  if (status === "loading" || typeof window === "undefined") {
     return (
       <>
         <div className="flex justify-center items-center h-screen">
