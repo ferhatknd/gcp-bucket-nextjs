@@ -13,7 +13,9 @@ export function useFileUploader(onUploadComplete: () => void) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string>("");
-  const [useCustomApiKey, setUseCustomApiKey] = useState(false);
+  const [useCustomApiKey, setUseCustomApiKey] = useState(
+    !session?.user?.apiKey,
+  );
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -32,8 +34,13 @@ export function useFileUploader(onUploadComplete: () => void) {
 
   const handleUpload = useCallback(async () => {
     if (files.length === 0) return;
-    const currentApiKey = useCustomApiKey ? apiKey : session?.user?.apiKey;
-    if (!currentApiKey) {
+
+    // Force useCustomApiKey to true if there's no session API key but there is a custom one
+    const shouldUseCustom =
+      useCustomApiKey || (!session?.user?.apiKey && apiKey);
+    const currentApiKey = shouldUseCustom ? apiKey : session?.user?.apiKey;
+
+    if (!currentApiKey || currentApiKey.trim() === "") {
       setError("API key is required.");
       return;
     }
@@ -58,7 +65,7 @@ export function useFileUploader(onUploadComplete: () => void) {
         setFiles([]);
         setUploading(false);
         setError(null);
-        onUploadComplete(); // Call the onUploadComplete callback
+        onUploadComplete();
       } else {
         const errorData = await response.json();
         setError(errorData.error || "Upload failed. Please try again.");

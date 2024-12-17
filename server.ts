@@ -255,11 +255,9 @@ nextApp.prepare().then(() => {
           );
         } catch (error) {
           console.log("Upload canceled: Error uploading files"); // Log upload canceled
-          res
-            .status(500)
-            .json({
-              error: `Error uploading files: ${(error as Error).message}`,
-            });
+          res.status(500).json({
+            error: `Error uploading files: ${(error as Error).message}`,
+          });
         }
       }
     });

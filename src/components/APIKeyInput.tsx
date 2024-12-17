@@ -22,6 +22,17 @@ export const APIKeyInput: React.FC<APIKeyInputProps> = ({
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
 
+  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only trim when setting the final value, not during typing
+    setApiKey(value);
+  };
+
+  // Trim on blur
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setApiKey(e.target.value.trim());
+  };
+
   return (
     <div className="mb-6 max-w-md mx-auto">
       <label
@@ -34,8 +45,9 @@ export const APIKeyInput: React.FC<APIKeyInputProps> = ({
         <input
           id="apiKey"
           type={showApiKey ? "text" : "password"}
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          value={apiKey || ""}
+          onChange={handleApiKeyChange}
+          onBlur={handleBlur}
           placeholder="Enter your API key"
           className="w-full p-3 pr-12 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition duration-200 border border-input bg-background text-foreground placeholder-muted-foreground text-sm sm:text-base"
           aria-describedby="apiKeyHelp"
