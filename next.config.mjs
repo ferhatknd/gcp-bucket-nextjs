@@ -5,6 +5,20 @@ const nextConfig = {
         NEXT_PUBLIC_WEB_URL: process.env.WEB_URL,
         NEXT_PUBLIC_API_BASE_URL: process.env.API_BASE_URL,
     },
+    redirects: async () => {
+        return [
+            {
+                source: '/login',
+                destination: '/auth/signin',
+                permanent: true,
+            },
+            {
+                source: '/signin',
+                destination: '/auth/signin',
+                permanent: true,
+            },
+        ];
+    },
     reactStrictMode: false,
     experimental: {
         optimizePackageImports: [
