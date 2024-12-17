@@ -19,7 +19,6 @@ const nextConfig = {
             },
         ];
     },
-    reactStrictMode: false,
     experimental: {
         optimizePackageImports: [
             'framer-motion',
