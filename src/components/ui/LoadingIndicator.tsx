@@ -1,6 +1,5 @@
 import React from "react";
-import dynamic from "next/dynamic";
-import { LoadingIcon } from "@/components/Icons";
+import { LoadingIcon } from "@/components/ui/Icons";
 
 interface LoadingIndicatorProps {
   loading: string;

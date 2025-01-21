@@ -21,15 +21,11 @@ export async function GET(request: NextRequest) {
       }
 
       const metadata = await cloudStorage.getFileMetadata(filename);
-      const stats = await cloudStorage.getFileStats(filename);
 
       return NextResponse.json({
         name: filename,
         updatedAt: metadata.updated,
         size: parseInt(String(metadata.size) || "0", 10),
-        downloads: stats.downloads,
-        views: stats.views,
-        uploadedKey: stats.uploadedKey || null,
       });
     }
 
@@ -42,13 +38,10 @@ export async function GET(request: NextRequest) {
         )
         .map(async (file) => {
           const metadata = await cloudStorage.getFileMetadata(file.name);
-          const stats = await cloudStorage.getFileStats(file.name);
           return {
             name: file.name,
             updatedAt: metadata.updated,
             size: parseInt(String(metadata.size) || "0", 10),
-            downloads: stats.downloads,
-            uploadedKey: stats.uploadedKey || null,
           };
         }),
     );
@@ -67,10 +60,6 @@ export async function GET(request: NextRequest) {
               new Date(a.updatedAt ?? 0).getTime();
       } else if (sort === "size") {
         return order === "asc" ? a.size - b.size : b.size - a.size;
-      } else if (sort === "downloads") {
-        return order === "asc"
-          ? a.downloads - b.downloads
-          : b.downloads - a.downloads;
       }
       return 0;
     });

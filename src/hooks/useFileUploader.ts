@@ -1,21 +1,10 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { useSession } from "next-auth/react";
-
-interface UploadedFile {
-  name: string;
-  url: string;
-}
 
 export function useFileUploader(onUploadComplete: () => void) {
-  const { data: session } = useSession();
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string>("");
-  const [useCustomApiKey, setUseCustomApiKey] = useState(
-    !session?.user?.apiKey,
-  );
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -35,16 +24,6 @@ export function useFileUploader(onUploadComplete: () => void) {
   const handleUpload = useCallback(async () => {
     if (files.length === 0) return;
 
-    // Force useCustomApiKey to true if there's no session API key but there is a custom one
-    const shouldUseCustom =
-      useCustomApiKey || (!session?.user?.apiKey && apiKey);
-    const currentApiKey = shouldUseCustom ? apiKey : session?.user?.apiKey;
-
-    if (!currentApiKey || currentApiKey.trim() === "") {
-      setError("API key is required.");
-      return;
-    }
-
     setUploading(true);
     setError(null);
     setUploadSuccess(null);
@@ -55,9 +34,6 @@ export function useFileUploader(onUploadComplete: () => void) {
     try {
       const response = await fetch("/api/upload", {
         method: "POST",
-        headers: {
-          "x-api-key": currentApiKey,
-        },
         body: formData,
       });
 
@@ -76,7 +52,7 @@ export function useFileUploader(onUploadComplete: () => void) {
     } finally {
       setUploading(false);
     }
-  }, [files, apiKey, useCustomApiKey, onUploadComplete, session?.user?.apiKey]);
+  }, [files, onUploadComplete]);
 
   const handleRemoveFile = (fileName: string) => {
     setFiles((prevFiles) => prevFiles.filter((file) => file.name !== fileName));
@@ -87,10 +63,6 @@ export function useFileUploader(onUploadComplete: () => void) {
     uploading,
     error,
     uploadSuccess,
-    apiKey,
-    setApiKey,
-    useCustomApiKey,
-    setUseCustomApiKey,
     getRootProps,
     getInputProps,
     isDragActive,

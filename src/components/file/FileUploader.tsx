@@ -4,54 +4,19 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileUploader } from "@/hooks/useFileUploader";
-import { APIKeyInput } from "../auth/APIKeyInput";
 import { DirectLinkUploader } from "./DirectLinkUploader";
 import { useState } from "react";
-import dynamic from "next/dynamic";
-import { useSession } from "next-auth/react";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { toast } from "react-hot-toast";
-
-const UploadIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.UploadIcon),
-  { ssr: false },
-);
-const XIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.XIcon),
-  { ssr: false },
-);
-const FileIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.FileIcon),
-  { ssr: false },
-);
-const LoadingIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.LoadingIcon),
-  { ssr: false },
-);
-const EyeIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.EyeIcon),
-  { ssr: false },
-);
-const EyeOffIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.EyeOffIcon),
-  { ssr: false },
-);
+import { UploadIcon, LoadingIcon } from "@/components/ui/Icons";
 
 export function FileUploader({
   onUploadComplete,
 }: {
   onUploadComplete: () => void;
 }) {
-  const { data: session } = useSession();
   const {
     files,
     uploading,
     error,
-    apiKey,
-    setApiKey,
-    useCustomApiKey,
-    setUseCustomApiKey,
     getRootProps,
     getInputProps,
     isDragActive,
@@ -59,12 +24,6 @@ export function FileUploader({
     handleRemoveFile,
   } = useFileUploader(onUploadComplete);
   const [directLinkError, setDirectLinkError] = useState<string | null>(null);
-  const [showApiKey, setShowApiKey] = useState(false);
-
-  const handleCopyApiKey = () => {
-    navigator.clipboard.writeText(session?.user?.apiKey || "");
-    toast.success("Copied to clipboard");
-  };
 
   const handleDirectLinkError = (error: string) => {
     setDirectLinkError(error);
@@ -77,140 +36,65 @@ export function FileUploader({
           Upload Files
         </h2>
 
-        {session?.user?.apiKey && (
-          <>
-            <div className="flex flex-col items-center justify-center">
-              <p className="text-md sm:text-lg lg:text-xl font-semibold text-center text-primary items-center justify-center">
-                Currently using api key:
-              </p>
-              <div className="flex items-center space-x-2">
-                <span
-                  className="font-mono text-xs sm:text-sm lg:text-base text-center text-muted-foreground items-center justify-center cursor-pointer"
-                  onClick={handleCopyApiKey}
-                  title="Click to copy"
-                >
-                  {showApiKey ? session?.user?.apiKey : "•".repeat(40)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="p-1"
-                >
-                  {showApiKey ? (
-                    <EyeOffIcon className="h-4 w-4" />
-                  ) : (
-                    <EyeIcon className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              <div className="flex items-center space-x-2 mb-4 justify-center mt-3">
-                <Switch
-                  id="use-custom-api-key"
-                  checked={useCustomApiKey}
-                  onCheckedChange={setUseCustomApiKey}
-                />
-                <Label htmlFor="use-custom-api-key" className="mr-2">
-                  Use custom API key
-                </Label>
-              </div>
-            </div>
-          </>
-        )}
-
-        {(useCustomApiKey || !session?.user?.apiKey) && (
-          <div className="mb-4 sm:mb-6 lg:mb-8">
-            <APIKeyInput apiKey={apiKey} setApiKey={setApiKey} />
-          </div>
-        )}
-
         <AnimatePresence mode="wait">
-          {(session?.user?.apiKey || apiKey) && (
-            <motion.div
-              key="file-uploader"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {!files.length ? (
-                <div
-                  {...getRootProps()}
-                  className={cn(
-                    "flex flex-col items-center justify-center w-full h-48 sm:h-56 lg:h-64 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ease-in-out",
-                    isDragActive
-                      ? "border-primary bg-primary/10"
-                      : "border-input hover:border-primary hover:bg-accent/50",
-                  )}
-                >
-                  <input {...getInputProps()} />
-                  <UploadIcon className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 mb-3 sm:mb-4 lg:mb-5 text-muted-foreground" />
-                  <p className="text-sm sm:text-base lg:text-lg text-foreground text-center items-center justify-center">
-                    <span className="font-semibold text-primary">
-                      Click to upload
-                    </span>{" "}
-                    or drag and drop
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
-                    Max file size: 3 GB
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 mt-4 sm:mt-6 lg:mt-8">
-                    {files.map((file) => (
-                      <div
-                        key={file.name}
-                        className="flex items-center gap-3 sm:gap-4 bg-card rounded-lg p-3 sm:p-4 border border-input shadow-sm hover:shadow-md transition-all duration-200"
-                      >
-                        <FileIcon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-primary flex-shrink-0" />
-                        <p className="text-sm sm:text-base text-foreground truncate flex-grow">
-                          {file.name}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveFile(file.name)}
-                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
-                          aria-label={`Remove ${file.name}`}
-                        >
-                          <XIcon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 sm:mt-6 lg:mt-8 flex justify-center">
-                    <Button
-                      onClick={handleUpload}
-                      disabled={files.length === 0 || uploading}
-                      className={cn(
-                        "py-3 sm:py-4 lg:py-5 text-base sm:text-lg font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out",
-                        files.length > 0 && !uploading
-                          ? "bg-primary hover:bg-primary/90 text-primary-foreground"
-                          : "bg-muted text-muted-foreground cursor-not-allowed",
-                      )}
-                    >
-                      {uploading ? (
-                        <span className="flex items-center justify-center">
-                          <LoadingIcon className="mr-3 sm:mr-4 h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 animate-spin" />
-                          <span className="text-center">Uploading...</span>
-                        </span>
-                      ) : (
-                        <span className="flex items-center justify-center">
-                          <UploadIcon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 mr-2 sm:mr-3" />
-                          <span className="text-center">Upload Files</span>
-                        </span>
-                      )}
-                    </Button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          )}
+          <motion.div
+            key="file-uploader"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {!files.length ? (
+              <div
+                {...getRootProps()}
+                className={cn(
+                  "flex flex-col items-center justify-center w-full h-48 sm:h-56 lg:h-64 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ease-in-out",
+                  isDragActive
+                    ? "border-primary bg-primary/10"
+                    : "border-input hover:border-primary hover:bg-accent/50",
+                )}
+              >
+                <input {...getInputProps()} />
+                <UploadIcon className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 mb-3 sm:mb-4 lg:mb-5 text-muted-foreground" />
+                <p className="text-sm sm:text-base lg:text-lg text-foreground text-center items-center justify-center">
+                  <span className="font-semibold text-primary">
+                    Click to upload
+                  </span>{" "}
+                  or drag and drop
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
+                  Max file size: 3 GB
+                </p>
+              </div>
+            ) : null}
+            <div className="mt-4 sm:mt-6 lg:mt-8 flex justify-center">
+              <Button
+                onClick={handleUpload}
+                disabled={files.length === 0 || uploading}
+                className={cn(
+                  "py-3 sm:py-4 lg:py-5 text-base sm:text-lg font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out",
+                  files.length > 0 && !uploading
+                    ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                    : "bg-muted text-muted-foreground cursor-not-allowed",
+                )}
+              >
+                {uploading ? (
+                  <span className="flex items-center justify-center">
+                    <LoadingIcon className="mr-3 sm:mr-4 h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 animate-spin" />
+                    <span className="text-center">Uploading...</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    <UploadIcon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 mr-2 sm:mr-3" />
+                    <span className="text-center">Upload Files</span>
+                  </span>
+                )}
+              </Button>
+            </div>
+          </motion.div>
         </AnimatePresence>
 
         <DirectLinkUploader
-          apiKey={useCustomApiKey ? apiKey : session?.user?.apiKey || ""}
           onUploadSuccess={onUploadComplete}
           onUploadError={handleDirectLinkError}
         />

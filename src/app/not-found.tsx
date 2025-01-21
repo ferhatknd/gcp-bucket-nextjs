@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HomeIcon } from "@/components/Icons";
+import { HomeIcon } from "@/components/ui/Icons";
 
 export default function NotFound() {
   return (

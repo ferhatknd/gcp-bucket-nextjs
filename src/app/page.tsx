@@ -1,38 +1,15 @@
 "use client";
 
 import React from "react";
-import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { MaintenanceContent } from "@/components/MaintenanceContent";
+import { MaintenanceContent } from "@/components/ui/MaintenanceContent";
 import useMaintenance from "@/hooks/useMaintenance";
-import Loading from "./loading";
-import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { Toaster } from "react-hot-toast";
-
-const ThemeSwitch = dynamic(
-  () => import("@/components/ThemeSwitch").then((mod) => mod.default),
-  { ssr: false },
-);
-const FileManagerIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.FileManagerIcon),
-  { ssr: false },
-);
-const GithubIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.GithubIcon),
-  { ssr: false },
-);
-const Header = dynamic(
-  () => import("@/components/Header").then((mod) => mod.default),
-  { ssr: false, loading: () => <Loading isLoading={true} /> },
-);
-const FileManager = dynamic(
-  () => import("@/components/file/FileManager").then((mod) => mod.FileManager),
-  { ssr: false, loading: () => <LoadingIndicator loading="file manager" /> },
-);
-const Footer = dynamic(
-  () => import("@/components/Footer").then((mod) => mod.default),
-  { ssr: false, loading: () => <LoadingIndicator loading="footer" /> },
-);
+import { FileManager } from "@/components/file/FileManager";
+import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import { GithubIcon, FileManagerIcon } from "@/components/ui/Icons";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   const { isMaintenance } = useMaintenance();

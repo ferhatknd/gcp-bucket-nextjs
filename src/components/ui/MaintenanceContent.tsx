@@ -1,3 +1,4 @@
+import React from "react";
 import useMaintenance from "@/hooks/useMaintenance";
 
 export function MaintenanceContent() {

@@ -5,32 +5,18 @@ import { TextPreview } from "@/components/previews/TextPreview";
 import { ImagePreview } from "@/components/previews/ImagePreview";
 import { AudioPreview } from "@/components/previews/AudioPreview";
 import { VideoPreview } from "@/components/previews/VideoPreview";
-import { LoadingIndicator } from "@/components/LoadingIndicator";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { getFileType } from "@/types/filetypes";
 import { useFileManagement } from "@/hooks/useFileManagement";
-import dynamic from "next/dynamic";
-import Loading from "@/app/loading";
-
-const ThemeSwitch = dynamic(
-  () => import("@/components/ThemeSwitch").then((mod) => mod.default),
-  { ssr: false },
-);
-const CopyIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.CopyIcon),
-  { ssr: false },
-);
-const Header = dynamic(() => import("./Header").then((mod) => mod.default), {
-  ssr: false,
-  loading: () => <Loading isLoading={true} />,
-});
+import { formatFileSize } from "@/lib/utils";
+import { CopyIcon } from "@/components/ui/Icons";
+import Header from "./Header";
+import ThemeSwitch from "@/components/ui/ThemeSwitch";
 
 interface FileDetails {
   name: string;
   size: number;
   updatedAt: string;
-  downloads: number;
-  views: number;
-  uploadedKey: string | null;
 }
 
 interface PreviewData {
@@ -90,32 +76,9 @@ export default function FilePage({
       }
     };
 
-    const incrementViewCount = async () => {
-      try {
-        const response = await fetch(
-          `/api/views?filename=${encodeURIComponent(fileName)}`,
-          {
-            method: "POST",
-          },
-        );
-        if (!response.ok) throw new Error("Failed to increment view count");
-      } catch (err) {
-        console.error("Failed to increment view count: ", err);
-      }
-    };
-
     fetchFileDetails();
-    incrementViewCount();
     fetchPreviewData();
   }, [fileName]);
-
-  function formatFileSize(bytes: number) {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  }
 
   function renderPreview() {
     if (!previewData) return null;
@@ -221,18 +184,6 @@ export default function FilePage({
                 {
                   label: "File Type",
                   value: fileType.charAt(0).toUpperCase() + fileType.slice(1),
-                },
-                {
-                  label: "Downloads",
-                  value: fileDetails?.downloads || 0,
-                },
-                {
-                  label: "Views",
-                  value: fileDetails?.views || 0,
-                },
-                {
-                  label: "Uploaded with API Key:",
-                  value: fileDetails?.uploadedKey || "Unknown",
                 },
               ].map((item, index) => (
                 <div

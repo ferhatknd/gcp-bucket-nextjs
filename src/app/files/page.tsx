@@ -3,47 +3,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import dynamic from "next/dynamic";
 import { useFileManagement } from "@/hooks/useFileManagement";
-import { SearchBar } from "@/components/SearchBar";
-
-const ThemeSwitch = dynamic(
-  () => import("@/components/ThemeSwitch").then((mod) => mod.default),
-  { ssr: false },
-);
-const HomeIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.HomeIcon),
-  { ssr: false },
-);
-const ManageIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.ManageIcon),
-  { ssr: false },
-);
-const Card = dynamic(
-  () => import("@/components/ui/card").then((mod) => mod.Card),
-  { ssr: false },
-);
-const CardContent = dynamic(
-  () => import("@/components/ui/card").then((mod) => mod.CardContent),
-  { ssr: false },
-);
-const CardHeader = dynamic(
-  () => import("@/components/ui/card").then((mod) => mod.CardHeader),
-  { ssr: false },
-);
-const CardTitle = dynamic(
-  () => import("@/components/ui/card").then((mod) => mod.CardTitle),
-  { ssr: false },
-);
-const LoadingIndicator = dynamic(
-  () =>
-    import("@/components/LoadingIndicator").then((mod) => mod.LoadingIndicator),
-  { ssr: false },
-);
-const FileContent = dynamic(
-  () => import("@/components/file/FileManager").then((mod) => mod.FileContent),
-  { ssr: false, loading: () => <LoadingIndicator loading="files" /> },
-);
+import { SearchBar } from "@/components/ui/SearchBar";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
+import { FileContent } from "@/components/file/FileManager";
+import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import { HomeIcon } from "@/components/ui/Icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const FilesPage = () => {
   const [error, setError] = useState(null);
@@ -93,14 +59,6 @@ const FilesPage = () => {
               <CardTitle className="text-2xl sm:text-3xl font-bold text-primary">
                 File Manager
               </CardTitle>
-              <Button
-                onClick={() => router.push("/files/manage")}
-                variant={"outline"}
-                className="transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:text-primary-foreground whitespace-nowrap"
-              >
-                <ManageIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-                Manage Files
-              </Button>
             </div>
             <div className="mt-4">
               <SearchBar
@@ -122,9 +80,7 @@ const FilesPage = () => {
                   ...file,
                   name: file.name,
                   updatedAt: file.updatedAt,
-                  downloads: file.downloads || 0,
                   size: file.size || 0,
-                  uploadedKey: file.uploadedKey || "",
                 }))}
                 onCopy={handleCopy}
                 onDownload={handleDownload}

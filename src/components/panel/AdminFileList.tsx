@@ -1,7 +1,6 @@
 "use client";
 import React, { JSX, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { formatFileSize } from "@/lib/utils";
@@ -15,51 +14,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-
-const FileIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.FileIcon),
-  { ssr: false },
-);
-const TrashIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.TrashIcon),
-  { ssr: false },
-);
-const SortIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.SortIcon),
-  { ssr: false },
-);
-const RefreshIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.RefreshIcon),
-  { ssr: false },
-);
-const DownloadCountIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.DownloadCountIcon),
-  { ssr: false },
-);
-const FileStatsIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.FileStatsIcon),
-  { ssr: false },
-);
-const ApiKeyIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.ApiKeyIcon),
-  { ssr: false },
-);
-const LoadingIndicator = dynamic(
-  () =>
-    import("@/components/LoadingIndicator").then((mod) => mod.LoadingIndicator),
-  { ssr: false },
-);
-const RenameIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.RenameIcon),
-  { ssr: false },
-);
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
+import {
+  FileIcon,
+  FileStatsIcon,
+  TrashIcon,
+  RenameIcon,
+  RefreshIcon,
+  SortIcon,
+} from "@/components/ui/Icons";
 
 interface File {
   name: string;
   updatedAt: string;
   size: number;
-  downloads: number;
-  uploadedKey: string | null;
 }
 
 interface FileListProps {
@@ -71,7 +39,7 @@ interface FileListProps {
   totalSize: number;
 }
 
-type SortType = "name" | "date" | "size" | "downloads";
+type SortType = "name" | "date" | "size";
 type SortOrder = "asc" | "desc";
 
 interface SortState {
@@ -106,10 +74,6 @@ export function AdminFileList({ files, onRefresh }: FileListProps) {
           : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       } else if (sortState.by === "size") {
         return order === "asc" ? a.size - b.size : b.size - a.size;
-      } else if (sortState.by === "downloads") {
-        return order === "asc"
-          ? a.downloads - b.downloads
-          : b.downloads - a.downloads;
       }
       return 0;
     });
@@ -297,7 +261,7 @@ export function AdminFileList({ files, onRefresh }: FileListProps) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {(["name", "date", "size", "downloads"] as const).map((type) => (
+          {(["name", "date", "size"] as const).map((type) => (
             <SortButton
               key={type}
               onClick={() => updateSort(type)}
@@ -316,23 +280,17 @@ export function AdminFileList({ files, onRefresh }: FileListProps) {
                       ? "A-Z"
                       : type === "date"
                         ? "Old"
-                        : type === "size"
-                          ? "Small"
-                          : "Fewest Downloads"
+                        : "Small"
                     : type === "name"
                       ? "Z-A"
                       : type === "date"
                         ? "New"
-                        : type === "size"
-                          ? "Large"
-                          : "Most Downloads"
+                        : "Large"
                   : type === "name"
                     ? "Sort by Name"
                     : type === "date"
                       ? "Sort by Date"
-                      : type === "size"
-                        ? "Sort by Size"
-                        : "Sort by Downloads"
+                      : "Sort by Size"
               }
             />
           ))}
@@ -367,14 +325,8 @@ export function AdminFileList({ files, onRefresh }: FileListProps) {
                         </h3>
                       </Link>
                       <div className="flex items-center mt-1 text-sm text-muted-foreground">
-                        <DownloadCountIcon className="w-4 h-4 mr-1" />
-                        <strong>{file.downloads}</strong>
-                        <span className="mx-2">•</span>
                         <FileStatsIcon className="w-4 h-4 mr-1" />
                         <span>{formatFileSize(file.size)}</span>
-                        <span className="mx-2">•</span>
-                        <ApiKeyIcon className="w-4 h-4 mr-1" />
-                        <span>{file.uploadedKey || "Unknown"}</span>
                       </div>
                     </div>
                   </div>

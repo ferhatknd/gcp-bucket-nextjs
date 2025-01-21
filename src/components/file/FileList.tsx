@@ -1,57 +1,25 @@
 "use client";
 import React, { useState, useCallback, useMemo, JSX } from "react";
 import { Button } from "@/components/ui/button";
-import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { formatFileSize } from "@/lib/utils";
 import { useFileManagement } from "@/hooks/useFileManagement";
-import { getFileIcon } from "@/components/Icons";
-
-const FileIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.FileIcon),
-  { ssr: false },
-);
-const CopyIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.CopyIcon),
-  { ssr: false },
-);
-const DownloadIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.DownloadIcon),
-  { ssr: false },
-);
-const SortIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.SortIcon),
-  { ssr: false },
-);
-const RefreshIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.RefreshIcon),
-  { ssr: false },
-);
-const AllFilesIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.AllFilesIcon),
-  { ssr: false },
-);
-const DownloadCountIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.DownloadCountIcon),
-  { ssr: false },
-);
-const FileStatsIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.FileStatsIcon),
-  { ssr: false },
-);
-const ApiKeyIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.ApiKeyIcon),
-  { ssr: false },
-);
+import {
+  getFileIcon,
+  RefreshIcon,
+  CopyIcon,
+  DownloadIcon,
+  FileStatsIcon,
+  SortIcon,
+  AllFilesIcon,
+} from "@/components/ui/Icons";
 
 interface File {
   name: string;
   updatedAt: string;
   size: number;
-  downloads: number;
-  uploadedKey: string | null;
 }
 
 interface FileListProps {
@@ -61,14 +29,6 @@ interface FileListProps {
   onRefresh: () => Promise<void>;
   totalFiles: number;
   totalSize: number;
-}
-
-type SortType = "name" | "date" | "size" | "downloads";
-type SortOrder = "asc" | "desc";
-
-interface SortState {
-  by: SortType;
-  orders: Record<SortType, SortOrder>;
 }
 
 export function FileList({
@@ -128,10 +88,6 @@ export function FileList({
           : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       } else if (sortState.by === "size") {
         return order === "asc" ? a.size - b.size : b.size - a.size;
-      } else if (sortState.by === "downloads") {
-        return order === "asc"
-          ? a.downloads - b.downloads
-          : b.downloads - a.downloads;
       }
       return 0;
     });
@@ -237,7 +193,7 @@ export function FileList({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {(["name", "date", "size", "downloads"] as const).map((type) => (
+          {(["name", "date", "size"] as const).map((type) => (
             <SortButton
               key={type}
               onClick={() => updateSort(type)}
@@ -300,22 +256,12 @@ export function FileList({
                       </h3>
                     </Link>
                     <div className="flex flex-wrap items-center mt-1 text-xs sm:text-sm text-muted-foreground">
-                      <div className="flex items-center mr-2">
-                        <DownloadCountIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                        <strong>{file.downloads}</strong>
-                      </div>
                       <span className="mx-1 sm:mx-2 hidden xs:inline">•</span>
                       <div className="flex items-center mr-2">
                         <FileStatsIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         <span>{formatFileSize(file.size)}</span>
                       </div>
                       <span className="mx-1 sm:mx-2 hidden xs:inline">•</span>
-                      <div className="flex items-center">
-                        <ApiKeyIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                        <span className="truncate max-w-[100px] sm:max-w-[150px] text-xs sm:text-sm font-mono">
-                          {file.uploadedKey || "Unknown"}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>

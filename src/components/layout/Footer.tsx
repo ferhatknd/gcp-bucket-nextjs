@@ -1,19 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-
-const GithubIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.GithubIcon),
-  { ssr: false },
-);
-const TelegramIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.TelegramIcon),
-  { ssr: false },
-);
-const HeartIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.HeartIcon),
-  { ssr: false },
-);
+import { GithubIcon, TelegramIcon, HeartIcon } from "@/components/ui/Icons";
 
 const Footer: React.FC = () => {
   return (
@@ -43,14 +30,6 @@ const Footer: React.FC = () => {
                   All Files
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/files/manage"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Manage Your Files
-                </Link>
-              </li>
             </ul>
           </nav>
           <div className="flex flex-col space-y-4 items-center sm:items-start">
@@ -77,22 +56,27 @@ const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+        <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center space-y-1 sm:space-y-0">
           <p className="text-sm text-muted-foreground text-center sm:text-left">
             © {new Date().getFullYear()} MrErenK Cloud Storage. All rights
             reserved.
           </p>
-          <p className="text-sm text-muted-foreground flex items-center justify-center">
-            Made with <HeartIcon size={16} className="text-red-500 mx-1" /> by
-            <Link
+          <div className="flex items-center">
+            Made with{" "}
+            <HeartIcon
+              size={16}
+              className="text-red-500 mx-1 animate-pulse hover:animate-bounce"
+            />
+            by{" "}
+            <a
               href="https://github.com/MrErenK"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className="hover:text-primary transition-colors ml-1"
             >
               MrErenK
-            </Link>
-          </p>
+            </a>
+          </div>
         </div>
       </div>
     </footer>

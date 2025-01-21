@@ -1,16 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-
-const CopyIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.CopyIcon),
-  { ssr: false },
-);
-const CheckIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.CheckIcon),
-  { ssr: false },
-);
+import { CheckIcon, CopyIcon } from "@/components/ui/Icons";
 
 interface TextPreviewProps {
   content: string;

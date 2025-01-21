@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
-
 import { Inter } from "next/font/google";
-import BuyMeCoffeeWidget from "@/components/BuyMeCoffeeWidget";
-import { AuthProvider } from "@/components/auth/AuthProvider";
+import BuyMeCoffeeWidget from "@/components/ui/BuyMeCoffeeWidget";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -56,12 +54,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <body className={inter.className}>
-          <AuthProvider>
-            <ThemeProvider attribute="class" defaultTheme="dark">
-              {children}
-              <BuyMeCoffeeWidget />
-            </ThemeProvider>
-          </AuthProvider>
+          <ThemeProvider attribute="class" defaultTheme="dark">
+            {children}
+            <BuyMeCoffeeWidget />
+          </ThemeProvider>
         </body>
       </head>
     </html>

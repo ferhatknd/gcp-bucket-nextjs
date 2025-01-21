@@ -3,20 +3,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
-
-const ThemeSwitch = dynamic(
-  () => import("@/components/ThemeSwitch").then((mod) => mod.default),
-  {
-    ssr: false,
-  },
-);
-const HomeIcon = dynamic(
-  () => import("@/components/Icons").then((mod) => mod.HomeIcon),
-  {
-    ssr: false,
-  },
-);
+import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import { HomeIcon } from "@/components/ui/Icons";
 
 export const Header = () => {
   const router = useRouter();

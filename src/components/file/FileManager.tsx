@@ -1,33 +1,16 @@
 "use client";
 import React, { useEffect, useCallback } from "react";
-import { Pagination } from "../Pagination";
-import { SearchBar } from "../SearchBar";
+import { Pagination } from "@/components/ui/Pagination";
+import { SearchBar } from "@/components/ui/SearchBar";
 import { useFileManagement } from "@/hooks/useFileManagement";
-import dynamic from "next/dynamic";
-import { UserFileManager } from "@/components/file/UserFileManager";
 import { toast } from "react-hot-toast";
-
-const LoadingIndicator = dynamic(
-  () =>
-    import("@/components/LoadingIndicator").then((mod) => mod.LoadingIndicator),
-  { ssr: false },
-);
-const FileList = dynamic(
-  () => import("@/components/file/FileList").then((mod) => mod.FileList),
-  { ssr: false, loading: () => <LoadingIndicator loading="files" /> },
-);
-const FileUploader = dynamic(
-  () =>
-    import("@/components/file/FileUploader").then((mod) => mod.FileUploader),
-  { ssr: false, loading: () => <LoadingIndicator loading="uploader" /> },
-);
+import { FileUploader } from "@/components/file/FileUploader";
+import { FileList } from "@/components/file/FileList";
 
 interface FileData {
   name: string;
   updatedAt: string;
-  downloads?: number;
   size?: number;
-  uploadedKey?: string;
 }
 
 export function FileManager() {
@@ -67,10 +50,6 @@ export function FileManager() {
     <section className="mb-8">
       <FileUploader onUploadComplete={handleUploadComplete} />
       <>
-        <div className="flex flex-col gap-4 justify-center items-center">
-          <h2 className="text-2xl font-bold mb-4">Uploaded Files</h2>
-          <UserFileManager />
-        </div>
         <h2 className="text-2xl font-bold mb-4">Download Files</h2>
         <div className="bg-muted rounded-lg p-6">
           <SearchBar
@@ -84,9 +63,7 @@ export function FileManager() {
               ...file,
               name: file.name,
               updatedAt: file.updatedAt,
-              downloads: file.downloads || 0,
               size: file.size || 0,
-              uploadedKey: file.uploadedKey || undefined,
             }))}
             onCopy={handleCopy}
             onDownload={handleDownload}
@@ -137,9 +114,7 @@ export function FileContent({
       files={files.map((file) => ({
         name: file.name,
         updatedAt: file.updatedAt,
-        downloads: file.downloads || 0,
         size: file.size || 0,
-        uploadedKey: file.uploadedKey || null,
       }))}
       onCopy={onCopy}
       onDownload={onDownload}

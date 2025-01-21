@@ -3,13 +3,11 @@ import { useDebounce } from "@/hooks/useDebounce";
 
 interface File {
   size: number;
-  downloads: number;
   name: string;
   updatedAt: string;
-  uploadedKey: string | null;
 }
 
-type SortType = "name" | "date" | "size" | "downloads";
+type SortType = "name" | "date" | "size";
 type SortOrder = "asc" | "desc";
 
 interface SortState {
@@ -44,7 +42,6 @@ export function useFileManagement(disablePagination = false) {
         name: "asc",
         date: "asc",
         size: "asc",
-        downloads: "asc",
       },
     };
   });

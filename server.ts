@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import next from "next";
 import { cloudStorage } from "./src/lib/cloudStorage";
-import { getPrisma } from "./src/lib/prisma";
 import cors from "cors";
 import busboy from "busboy";
 import stream from "stream";
@@ -22,37 +21,9 @@ app.use(cors());
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024 * 1024; // 3 GB in bytes
 const BASE_URL = process.env.WEB_URL || "http://localhost:3000";
-const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
-
-if (!ADMIN_API_KEY) {
-  throw new Error("ADMIN_API_KEY environment variable is not set");
-}
-
-async function verifyApiKey(apiKey: string): Promise<boolean> {
-  try {
-    const response = await fetch(`${BASE_URL}/api/keys/verify?key=${apiKey}`);
-    if (response.ok) {
-      const data = await response.json();
-      return data.valid === true;
-    }
-    return false;
-  } catch (error) {
-    console.error("Error verifying API key:", error);
-    return false;
-  }
-}
-
-async function getApiKeyDescription(apiKey: string): Promise<string | null> {
-  const prisma = await getPrisma();
-  const apiKeyData = await prisma.apiKey.findUnique({
-    where: { key: apiKey },
-    select: { description: true },
-  });
-  return apiKeyData ? apiKeyData.description : null;
-}
 
 async function uploadFromDirectLink(
-  directLink: string
+  directLink: string,
 ): Promise<{ name: string; url: string }> {
   const response = await fetch(directLink);
   if (!response.ok) throw new Error(`Failed to fetch file from ${directLink}`);
@@ -96,16 +67,6 @@ async function uploadFromDirectLink(
 nextApp.prepare().then(() => {
   // @ts-ignore
   app.post("/api/upload", async (req: Request, res: Response) => {
-    const prisma = await getPrisma();
-    const apiKey = req.headers["x-api-key"] as string;
-
-    if (!apiKey || !(await verifyApiKey(apiKey))) {
-      return res.status(401).json({
-        error: "Unauthorized: Invalid or missing API key",
-        key: apiKey,
-      });
-    }
-
     console.log("Upload started");
 
     const contentType = req.headers["content-type"] || "";
@@ -134,10 +95,9 @@ nextApp.prepare().then(() => {
       if (body && body.directLink) {
         try {
           const uploadedFile = await uploadFromDirectLink(body.directLink);
-          const apikey = await getApiKeyDescription(apiKey);
           console.log("Upload completed successfully");
           console.log(
-            `Uploaded file details: Name: ${uploadedFile.name}, URL: ${uploadedFile.url}, apiKey: ${apikey}`
+            `Uploaded file details: Name: ${uploadedFile.name}, URL: ${uploadedFile.url}}`,
           );
           return res.json({
             message: "File uploaded successfully from direct link",
@@ -181,16 +141,16 @@ nextApp.prepare().then(() => {
               file.resume();
               blobStream.destroy(
                 new Error(
-                  `File ${filename} exceeds the maximum allowed size of 6 GB.`
-                )
+                  `File ${filename} exceeds the maximum allowed size of 6 GB.`,
+                ),
               );
               console.log(
-                `Upload canceled: File ${filename} exceeds size limit`
+                `Upload canceled: File ${filename} exceeds size limit`,
               ); // Log upload canceled
               rejectUpload(
                 new Error(
-                  `File ${filename} exceeds the maximum allowed size of 6 GB.`
-                )
+                  `File ${filename} exceeds the maximum allowed size of 6 GB.`,
+                ),
               );
             }
           });
@@ -207,7 +167,7 @@ nextApp.prepare().then(() => {
 
               const fileUrl = `${BASE_URL}/api/download?filename=${encodeURIComponent(filename)}`;
               console.log(
-                `Uploaded file details: Name: ${filename}, URL: ${fileUrl}`
+                `Uploaded file details: Name: ${filename}, URL: ${fileUrl}`,
               ); // Log file details
               resolveUpload({ name: filename, url: fileUrl });
             } catch (error) {
@@ -220,7 +180,7 @@ nextApp.prepare().then(() => {
             console.log(`Upload canceled: Error uploading ${filename}`); // Log upload canceled
             rejectUpload(error);
           });
-        }
+        },
       );
 
       uploadPromises.push(uploadPromise);
@@ -237,24 +197,8 @@ nextApp.prepare().then(() => {
             message: "Files uploaded successfully",
             files: uploadedFiles,
           });
-          const apiKeyDescription = await getApiKeyDescription(apiKey);
-          await prisma.fileStats.deleteMany({
-            where: {
-              filename: {
-                in: uploadedFiles.map((file) => file.name),
-              },
-            },
-          });
-          await prisma.fileStats.createMany({
-            data: uploadedFiles.map((file) => ({
-              filename: file.name,
-              views: 0,
-              downloads: 0,
-              uploadedKey: apiKeyDescription,
-            })),
-          });
           console.log(
-            `Upload completed: Files uploaded with the following names: ${uploadedFiles.map((file) => file.name).join(", ")} using the api key: ${apiKeyDescription}`
+            `Upload completed: Files uploaded with the following names: ${uploadedFiles.map((file) => file.name).join(", ")}`,
           );
         } catch (error) {
           console.log("Upload canceled: Error uploading files"); // Log upload canceled

@@ -29,8 +29,6 @@ export async function GET(request: NextRequest) {
       content?: string;
       previewUrl?: string;
       fileType?: string;
-      views?: number;
-      downloads?: number;
     } = {};
 
     switch (fileType) {
@@ -49,11 +47,6 @@ export async function GET(request: NextRequest) {
         previewData.fileType = fileType;
         previewData.previewUrl = `${process.env.NEXT_PUBLIC_CDN_URL}/${filename}`;
     }
-
-    // Get file stats
-    const stats = await cloudStorage.getFileStats(filename);
-    previewData.views = stats.views;
-    previewData.downloads = stats.downloads;
 
     return NextResponse.json(previewData);
   } catch (error) {
