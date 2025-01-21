@@ -9,9 +9,9 @@ import { useState } from "react";
 import { UploadIcon, LoadingIcon } from "@/components/ui/Icons";
 
 export function FileUploader({
-  onUploadComplete,
+  onUploadCompleteAction,
 }: {
-  onUploadComplete: () => void;
+  onUploadCompleteAction: () => void;
 }) {
   const {
     files,
@@ -21,8 +21,7 @@ export function FileUploader({
     getInputProps,
     isDragActive,
     handleUpload,
-    handleRemoveFile,
-  } = useFileUploader(onUploadComplete);
+  } = useFileUploader(onUploadCompleteAction);
   const [directLinkError, setDirectLinkError] = useState<string | null>(null);
 
   const handleDirectLinkError = (error: string) => {
@@ -95,8 +94,8 @@ export function FileUploader({
         </AnimatePresence>
 
         <DirectLinkUploader
-          onUploadSuccess={onUploadComplete}
-          onUploadError={handleDirectLinkError}
+          onUploadSuccessAction={onUploadCompleteAction}
+          onUploadErrorAction={handleDirectLinkError}
         />
         {directLinkError && (
           <p className="text-red-500 text-sm sm:text-base mt-2 sm:mt-3">

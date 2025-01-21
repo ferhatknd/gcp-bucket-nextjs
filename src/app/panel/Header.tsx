@@ -12,7 +12,7 @@ export const Header = () => {
     "transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:text-primary-foreground";
 
   return (
-    <header className="sticky top-0 z-10 w-full bg-card shadow-md px-4 py-4 backdrop-blur-md shadow-lg h-18 rounded-lg">
+    <header className="sticky top-0 z-10 w-full bg-card px-4 py-4 backdrop-blur-md shadow-lg h-18 rounded-lg">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Button
           onClick={() => router.push("/")}

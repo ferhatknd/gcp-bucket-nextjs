@@ -48,7 +48,7 @@ export function FileManager() {
 
   return (
     <section className="mb-8">
-      <FileUploader onUploadComplete={handleUploadComplete} />
+      <FileUploader onUploadCompleteAction={handleUploadComplete} />
       <>
         <h2 className="text-2xl font-bold mb-4">Download Files</h2>
         <div className="bg-muted rounded-lg p-6">
@@ -65,9 +65,9 @@ export function FileManager() {
               updatedAt: file.updatedAt,
               size: file.size || 0,
             }))}
-            onCopy={handleCopy}
-            onDownload={handleDownload}
-            onRefresh={handleRefresh}
+            onCopyAction={handleCopy}
+            onDownloadAction={handleDownload}
+            onRefreshAction={handleRefresh}
             totalFiles={totalFiles}
             totalSize={totalSize}
           />
@@ -88,9 +88,9 @@ interface FileContentProps {
   loading: boolean;
   initialLoadDone: boolean;
   files: FileData[];
-  onCopy: (filename: string) => void;
-  onDownload: (filename: string) => void;
-  onRefresh: () => Promise<void>;
+  onCopyAction: (filename: string) => void;
+  onDownloadAction: (filename: string) => void;
+  onRefreshAction: () => Promise<void>;
   totalFiles: number;
   totalSize: number;
 }
@@ -99,9 +99,9 @@ export function FileContent({
   loading,
   initialLoadDone,
   files,
-  onCopy,
-  onDownload,
-  onRefresh,
+  onCopyAction,
+  onDownloadAction,
+  onRefreshAction,
   totalFiles,
   totalSize,
 }: FileContentProps) {
@@ -116,9 +116,9 @@ export function FileContent({
         updatedAt: file.updatedAt,
         size: file.size || 0,
       }))}
-      onCopy={onCopy}
-      onDownload={onDownload}
-      onRefresh={onRefresh}
+      onCopyAction={onCopyAction}
+      onDownloadAction={onDownloadAction}
+      onRefreshAction={onRefreshAction}
       totalFiles={totalFiles}
       totalSize={totalSize}
     />

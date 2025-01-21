@@ -24,9 +24,9 @@ export default function AdminFileManager() {
               updatedAt: file.updatedAt,
               size: file.size || 0,
             }))}
-            onCopy={() => {}}
-            onDownload={() => {}}
-            onRefresh={handleRefresh}
+            onCopyAction={() => {}}
+            onDownloadAction={() => {}}
+            onRefreshAction={handleRefresh}
             totalFiles={totalFiles}
             totalSize={totalSize}
           />

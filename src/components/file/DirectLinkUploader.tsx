@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { UploadIcon, LoadingIcon } from "@/components/ui/Icons";
 
 interface DirectLinkUploaderProps {
-  onUploadSuccess: (file: { name: string; url: string }) => void;
-  onUploadError: (error: string) => void;
+  onUploadSuccessAction: (file: { name: string; url: string }) => void;
+  onUploadErrorAction: (error: string) => void;
 }
 
 export function DirectLinkUploader({
-  onUploadSuccess,
-  onUploadError,
+  onUploadSuccessAction,
+  onUploadErrorAction,
 }: DirectLinkUploaderProps) {
   const [directLink, setDirectLink] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -40,13 +40,13 @@ export function DirectLinkUploader({
       const data = await response.json();
       // Check if the response contains the expected file data
       if (data.file && data.file.name && data.file.url) {
-        onUploadSuccess(data.file);
+        onUploadSuccessAction(data.file);
         setDirectLink("");
       } else {
         throw new Error("Unexpected response format from server");
       }
     } catch (error) {
-      onUploadError((error as Error).message);
+      onUploadErrorAction((error as Error).message);
     } finally {
       setIsUploading(false);
     }

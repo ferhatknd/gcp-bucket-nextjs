@@ -24,18 +24,18 @@ interface File {
 
 interface FileListProps {
   files: File[];
-  onCopy: (filename: string) => void;
-  onDownload: (filename: string) => void;
-  onRefresh: () => Promise<void>;
+  onCopyAction: (filename: string) => void;
+  onDownloadAction: (filename: string) => void;
+  onRefreshAction: () => Promise<void>;
   totalFiles: number;
   totalSize: number;
 }
 
 export function FileList({
   files,
-  onCopy,
-  onDownload,
-  onRefresh,
+  onCopyAction,
+  onDownloadAction,
+  onRefreshAction,
   totalFiles,
   totalSize,
 }: FileListProps) {
@@ -55,24 +55,24 @@ export function FileList({
 
   const handleCopy = useCallback(
     (filename: string) => {
-      onCopy(filename);
+      onCopyAction(filename);
       setCopiedStates((prev) => ({ ...prev, [filename]: true }));
       setTimeout(() => {
         setCopiedStates((prev) => ({ ...prev, [filename]: false }));
       }, 2000);
     },
-    [onCopy],
+    [onCopyAction],
   );
 
   const handleDownload = useCallback(
     (filename: string) => {
-      onDownload(filename);
+      onDownloadAction(filename);
       setDownloadingStates((prev) => ({ ...prev, [filename]: true }));
       setTimeout(() => {
         setDownloadingStates((prev) => ({ ...prev, [filename]: false }));
       }, 2000);
     },
-    [onDownload],
+    [onDownloadAction],
   );
 
   const sortedFiles = useMemo(() => {
@@ -170,7 +170,7 @@ export function FileList({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              onClick={onRefresh}
+              onClick={onRefreshAction}
               variant="outline"
               size="sm"
               className={`${buttonClasses} whitespace-nowrap`}

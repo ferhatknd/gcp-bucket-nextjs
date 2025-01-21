@@ -32,9 +32,9 @@ interface File {
 
 interface FileListProps {
   files: File[];
-  onCopy: (filename: string) => void;
-  onDownload: (filename: string) => void;
-  onRefresh: () => Promise<void>;
+  onCopyAction: (filename: string) => void;
+  onDownloadAction: (filename: string) => void;
+  onRefreshAction: () => Promise<void>;
   totalFiles: number;
   totalSize: number;
 }
@@ -47,7 +47,7 @@ interface SortState {
   orders: Record<SortType, SortOrder>;
 }
 
-export function AdminFileList({ files, onRefresh }: FileListProps) {
+export function AdminFileList({ files, onRefreshAction }: FileListProps) {
   const { sortState, updateSort } = useFileManagement();
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -171,7 +171,7 @@ export function AdminFileList({ files, onRefresh }: FileListProps) {
       }
 
       toast.success("File deleted successfully");
-      onRefresh();
+      onRefreshAction();
     } catch (error) {
       console.error("Error deleting file:", error);
       toast.error("Failed to delete file. Please try again.");
@@ -214,7 +214,7 @@ export function AdminFileList({ files, onRefresh }: FileListProps) {
       }
 
       toast.success("File renamed successfully");
-      onRefresh();
+      onRefreshAction();
     } catch (error) {
       console.error("Error renaming file:", error);
       toast.error("Failed to rename file. Please try again.");
@@ -227,7 +227,7 @@ export function AdminFileList({ files, onRefresh }: FileListProps) {
   const handleRefresh = async () => {
     setIsLoading(true);
     try {
-      await onRefresh();
+      await onRefreshAction();
     } finally {
       setIsLoading(false);
     }

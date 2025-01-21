@@ -82,9 +82,9 @@ const FilesPage = () => {
                   updatedAt: file.updatedAt,
                   size: file.size || 0,
                 }))}
-                onCopy={handleCopy}
-                onDownload={handleDownload}
-                onRefresh={handleRefresh}
+                onCopyAction={handleCopy}
+                onDownloadAction={handleDownload}
+                onRefreshAction={handleRefresh}
                 totalFiles={totalFiles}
                 totalSize={totalSize}
               />
