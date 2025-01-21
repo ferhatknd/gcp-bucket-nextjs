@@ -52,7 +52,7 @@ async function getApiKeyDescription(apiKey: string): Promise<string | null> {
 }
 
 async function uploadFromDirectLink(
-  directLink: string,
+  directLink: string
 ): Promise<{ name: string; url: string }> {
   const response = await fetch(directLink);
   if (!response.ok) throw new Error(`Failed to fetch file from ${directLink}`);
@@ -71,6 +71,9 @@ async function uploadFromDirectLink(
   }
 
   filename = filename.replace(/"/g, "");
+
+  // Create blob stream
+  const blobStream = cloudStorage.createWriteStream(filename);
 
   if (response.body) {
     // @ts-ignore
@@ -134,7 +137,7 @@ nextApp.prepare().then(() => {
           const apikey = await getApiKeyDescription(apiKey);
           console.log("Upload completed successfully");
           console.log(
-            `Uploaded file details: Name: ${uploadedFile.name}, URL: ${uploadedFile.url}, apiKey: ${apikey}`,
+            `Uploaded file details: Name: ${uploadedFile.name}, URL: ${uploadedFile.url}, apiKey: ${apikey}`
           );
           return res.json({
             message: "File uploaded successfully from direct link",
@@ -178,16 +181,16 @@ nextApp.prepare().then(() => {
               file.resume();
               blobStream.destroy(
                 new Error(
-                  `File ${filename} exceeds the maximum allowed size of 6 GB.`,
-                ),
+                  `File ${filename} exceeds the maximum allowed size of 6 GB.`
+                )
               );
               console.log(
-                `Upload canceled: File ${filename} exceeds size limit`,
+                `Upload canceled: File ${filename} exceeds size limit`
               ); // Log upload canceled
               rejectUpload(
                 new Error(
-                  `File ${filename} exceeds the maximum allowed size of 6 GB.`,
-                ),
+                  `File ${filename} exceeds the maximum allowed size of 6 GB.`
+                )
               );
             }
           });
@@ -204,7 +207,7 @@ nextApp.prepare().then(() => {
 
               const fileUrl = `${BASE_URL}/api/download?filename=${encodeURIComponent(filename)}`;
               console.log(
-                `Uploaded file details: Name: ${filename}, URL: ${fileUrl}`,
+                `Uploaded file details: Name: ${filename}, URL: ${fileUrl}`
               ); // Log file details
               resolveUpload({ name: filename, url: fileUrl });
             } catch (error) {
@@ -217,7 +220,7 @@ nextApp.prepare().then(() => {
             console.log(`Upload canceled: Error uploading ${filename}`); // Log upload canceled
             rejectUpload(error);
           });
-        },
+        }
       );
 
       uploadPromises.push(uploadPromise);
@@ -251,7 +254,7 @@ nextApp.prepare().then(() => {
             })),
           });
           console.log(
-            `Upload completed: Files uploaded with the following names: ${uploadedFiles.map((file) => file.name).join(", ")} using the api key: ${apiKeyDescription}`,
+            `Upload completed: Files uploaded with the following names: ${uploadedFiles.map((file) => file.name).join(", ")} using the api key: ${apiKeyDescription}`
           );
         } catch (error) {
           console.log("Upload canceled: Error uploading files"); // Log upload canceled
