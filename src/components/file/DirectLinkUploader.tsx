@@ -20,7 +20,10 @@ export function DirectLinkUploader({
   const [isUploading, setIsUploading] = useState(false);
 
   const handleUpload = async () => {
-    if (!directLink) return;
+    if (!directLink) {
+      onUploadErrorAction("Please enter a direct download link");
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -32,18 +35,17 @@ export function DirectLinkUploader({
         body: JSON.stringify({ directLink }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Upload failed");
+        throw new Error(data.error || "Upload failed");
       }
 
-      const data = await response.json();
-      // Check if the response contains the expected file data
       if (data.file && data.file.name && data.file.url) {
         onUploadSuccessAction(data.file);
         setDirectLink("");
       } else {
-        throw new Error("Unexpected response format from server");
+        throw new Error("Invalid response format from server");
       }
     } catch (error) {
       onUploadErrorAction((error as Error).message);
@@ -65,8 +67,8 @@ export function DirectLinkUploader({
         <h3 className="text-xl font-semibold mb-4 text-center">
           Upload from Direct Link
         </h3>
-        <p className="text-sm mb-4 text-center">
-          Upload files from direct download links.
+        <p className="text-sm mb-4 text-center text-muted-foreground">
+          Upload files from direct download links (500MB - 3GB)
         </p>
         <div className="flex flex-col space-y-4">
           <Input
@@ -75,6 +77,7 @@ export function DirectLinkUploader({
             value={directLink}
             onChange={(e) => setDirectLink(e.target.value)}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-primary"
+            disabled={isUploading}
           />
           <Button
             onClick={handleUpload}

@@ -7,9 +7,14 @@ import { useState } from "react";
 export function FileUploader({
   onUploadCompleteAction,
 }: {
-  onUploadCompleteAction: () => void;
+  onUploadCompleteAction: (file: { name: string; url: string }) => void;
 }) {
   const [directLinkError, setDirectLinkError] = useState<string | null>(null);
+
+  const handleDirectLinkSuccess = (file: { name: string; url: string }) => {
+    onUploadCompleteAction(file);
+    setDirectLinkError(null);
+  };
 
   const handleDirectLinkError = (error: string) => {
     setDirectLinkError(error);
@@ -22,20 +27,20 @@ export function FileUploader({
       </h2>
 
       <DirectLinkUploader
-        onUploadSuccessAction={onUploadCompleteAction}
+        onUploadSuccessAction={handleDirectLinkSuccess}
         onUploadErrorAction={handleDirectLinkError}
       />
 
       <AnimatePresence>
         {directLinkError && (
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="text-red-500 text-sm sm:text-base mt-2 sm:mt-3"
+            className="text-red-500 text-sm sm:text-base mt-2 sm:mt-3 text-center bg-red-50 p-3 rounded-lg"
           >
             {directLinkError}
-          </motion.p>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
