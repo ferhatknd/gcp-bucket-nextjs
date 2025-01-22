@@ -1,5 +1,5 @@
 import React from "react";
-import { Header } from "@/components/layout/Header";
+import { Header } from "@/app/panel/Header";
 import AdminFileManager from "@/components/panel/AdminFileManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -7,22 +7,18 @@ interface MainPanelProps {}
 
 export const MainPanel: React.FC<MainPanelProps> = () => {
   return (
-    <>
-      <main className="flex-grow container mx-auto px-4 py-8 sm:py-12 lg:py-16 max-w-7xl">
-        <div className="space-y-8 sm:space-y-12">
-          <div className="flex flex-col gap-4">
-            <Header />
-          </div>
-          <Card className="border border-primary/10 shadow-xl rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-primary/10 p-6">
-              <CardTitle className="text-2xl sm:text-3xl font-bold text-center sm:text-left text-primary">
-                Admin Panel
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <Card className="border border-primary/10 shadow-xl rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-primary/10 p-6">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-center sm:text-left text-primary">
+              Admin Panel
+            </CardTitle>
+          </CardHeader>
+        </Card>
 
-        <div className="mt-8 sm:mt-12">
+        <div className="mt-8">
           <Card className="border border-primary/10 shadow-xl rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
             <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-primary/10 p-6">
               <CardTitle className="text-2xl font-semibold text-primary">
@@ -35,6 +31,6 @@ export const MainPanel: React.FC<MainPanelProps> = () => {
           </Card>
         </div>
       </main>
-    </>
+    </div>
   );
 };

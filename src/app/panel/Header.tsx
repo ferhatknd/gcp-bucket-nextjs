@@ -12,11 +12,11 @@ export const Header = () => {
     "transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:text-primary-foreground";
 
   return (
-    <header className="sticky top-0 z-10 w-full bg-card px-4 py-4 backdrop-blur-md shadow-lg h-18 rounded-lg">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
+    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm border-b">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
         <Button
           onClick={() => router.push("/")}
-          variant="outline"
+          variant="ghost"
           className={buttonClasses}
         >
           <HomeIcon className="w-5 h-5 mr-2" />
