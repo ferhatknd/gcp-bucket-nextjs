@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { useRouter } from "next/navigation";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/panel/LoginForm";
@@ -8,7 +7,6 @@ import { MainPanel } from "@/components/panel/MainPanel";
 import { Header } from "./Header";
 
 const PanelPage = () => {
-  const router = useRouter();
   const {
     adminApiKey,
     setAdminApiKey,

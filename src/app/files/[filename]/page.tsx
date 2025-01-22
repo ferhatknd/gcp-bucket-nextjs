@@ -12,6 +12,7 @@ import { formatFileSize } from "@/lib/utils";
 import { CopyIcon } from "@/components/ui/Icons";
 import Header from "./Header";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
+import { FilePreviewSkeleton } from "@/components/ui/FilePreviewSkeleton";
 
 interface FileDetails {
   name: string;
@@ -79,6 +80,19 @@ export default function FilePage({
     fetchFileDetails();
     fetchPreviewData();
   }, [fileName]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80">
+        <Header
+          handleCopy={() => {}}
+          handleDownload={() => {}}
+          copied={false}
+        />
+        <FilePreviewSkeleton />
+      </div>
+    );
+  }
 
   function renderPreview() {
     if (!previewData) return null;

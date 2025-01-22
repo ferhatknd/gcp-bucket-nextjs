@@ -111,6 +111,7 @@ export function FileContent({
 
   return (
     <FileList
+      loading={loading}
       files={files.map((file) => ({
         name: file.name,
         updatedAt: file.updatedAt,

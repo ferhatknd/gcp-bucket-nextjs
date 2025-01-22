@@ -15,6 +15,7 @@ import {
   SortIcon,
   AllFilesIcon,
 } from "@/components/ui/Icons";
+import { FilesSkeleton } from "../ui/FilesSkeleton";
 
 interface File {
   name: string;
@@ -29,6 +30,7 @@ interface FileListProps {
   onRefreshAction: () => Promise<void>;
   totalFiles: number;
   totalSize: number;
+  loading?: boolean;
 }
 
 export function FileList({
@@ -38,6 +40,7 @@ export function FileList({
   onRefreshAction,
   totalFiles,
   totalSize,
+  loading = false,
 }: FileListProps) {
   const { sortState, updateSort } = useFileManagement();
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>(
@@ -49,6 +52,10 @@ export function FileList({
   const router = useRouter();
   const pathname = usePathname();
   const currentRoute = pathname.split("?")[0];
+
+  if (loading) {
+    return <FilesSkeleton />;
+  }
 
   const buttonClasses =
     "transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:text-primary-foreground";
