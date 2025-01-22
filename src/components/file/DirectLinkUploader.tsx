@@ -65,6 +65,9 @@ export function DirectLinkUploader({
         <h3 className="text-xl font-semibold mb-4 text-center">
           Upload from Direct Link
         </h3>
+        <p className="text-sm mb-4 text-center">
+          Upload files from direct download links.
+        </p>
         <div className="flex flex-col space-y-4">
           <Input
             type="text"
