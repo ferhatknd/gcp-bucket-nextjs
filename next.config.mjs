@@ -3,6 +3,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_CDN_URL: process.env.CDN_URL,
     NEXT_PUBLIC_WEB_URL: process.env.WEB_URL,
+    NEXT_PUBLIC_ADMIN_API_KEY: process.env.ADMIN_API_KEY,
   },
   experimental: {
     optimizePackageImports: [
@@ -16,6 +17,25 @@ const nextConfig = {
       "@radix-ui/react-dialog",
       "@radix-ui/react-slot",
     ],
+  },
+  redirects: async () => {
+    return [
+      {
+        source: "/home",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/download-script",
+        destination: "/api/download-script",
+        permanent: true,
+      },
+      {
+        source: "/upload-script",
+        destination: "/api/download-script",
+        permanent: true,
+      },
+    ];
   },
 };
 

@@ -3,113 +3,150 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 89%;
-    --input: 0 0% 89%;
-    --ring: 0 0% 0%;
-    --radius: 0.5rem;
-    --chart-1: 0 0% 0%;
-    --chart-2: 0 0% 20%;
-    --chart-3: 0 0% 40%;
-    --chart-4: 0 0% 60%;
-    --chart-5: 0 0% 80%;
-    --bmc-light: #3b3636;
-    --bmc-dark: #b0acac;
-  }
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 0%;
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 0%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 0%;
+        --primary: 0 0% 0%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 0 0% 96%;
+        --secondary-foreground: 0 0% 0%;
+        --muted: 0 0% 96%;
+        --muted-foreground: 0 0% 45%;
+        --accent: 0 0% 96%;
+        --accent-foreground: 0 0% 0%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 0 0% 89%;
+        --input: 0 0% 89%;
+        --ring: 0 0% 0%;
+        --radius: 0.5rem;
+        --chart-1: 0 0% 0%;
+        --chart-2: 0 0% 20%;
+        --chart-3: 0 0% 40%;
+        --chart-4: 0 0% 60%;
+        --chart-5: 0 0% 80%;
+        --bmc-light: #3b3636;
+        --bmc-dark: #b0acac;
+        --gradient-1: 0, 0%, 0%; /* Black */
+        --gradient-2: 0, 0%, 20%; /* Dark Gray */
+        --gradient-3: 0, 0%, 40%; /* Gray */
+        --glow-1: 0, 0%, 0%;
+        --glow-2: 0, 0%, 20%;
+    }
 
-  .dark {
-    --background: 0 0% 3%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 3%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 3%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 0 0% 10%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 0 0% 100%;
-    --chart-1: 0 0% 100%;
-    --chart-2: 0 0% 80%;
-    --chart-3: 0 0% 60%;
-    --chart-4: 0 0% 40%;
-    --chart-5: 0 0% 20%;
-    --bmc-light: #3b3636;
-    --bmc-dark: #b0acac;
-  }
+    .dark {
+        --background: 0 0% 3%;
+        --foreground: 0 0% 100%;
+        --card: 0 0% 3%;
+        --card-foreground: 0 0% 100%;
+        --popover: 0 0% 3%;
+        --popover-foreground: 0 0% 100%;
+        --primary: 0 0% 100%;
+        --primary-foreground: 0 0% 0%;
+        --secondary: 0 0% 10%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 0 0% 10%;
+        --muted-foreground: 0 0% 65%;
+        --accent: 0 0% 10%;
+        --accent-foreground: 0 0% 100%;
+        --destructive: 0 62% 30%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 0 0% 15%;
+        --input: 0 0% 15%;
+        --ring: 0 0% 100%;
+        --chart-1: 0 0% 100%;
+        --chart-2: 0 0% 80%;
+        --chart-3: 0 0% 60%;
+        --chart-4: 0 0% 40%;
+        --chart-5: 0 0% 20%;
+        --bmc-light: #3b3636;
+        --bmc-dark: #b0acac;
+        --gradient-1: 0, 0%, 100%; /* White */
+        --gradient-2: 0, 0%, 80%; /* Light Gray */
+        --gradient-3: 0, 0%, 60%; /* Gray */
+        --glow-1: 0, 0%, 100%;
+        --glow-2: 0, 0%, 80%;
+    }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
 }
 
 .fade-in {
-  opacity: 0;
-  transition: opacity 0.5s ease-in;
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
 }
 
 .fade-in.show {
-  opacity: 1;
+    opacity: 1;
 }
 
 @layer base {
-  body {
-    @apply text-base leading-relaxed;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold leading-tight mb-4;
-  }
-  h1 {
-    @apply text-4xl;
-  }
-  h2 {
-    @apply text-3xl;
-  }
-  h3 {
-    @apply text-2xl;
-  }
-  a {
-    @apply text-primary hover:text-primary-foreground transition-colors duration-200;
-  }
+    body {
+        @apply text-base leading-relaxed;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-bold leading-tight mb-4;
+    }
+    h1 {
+        @apply text-4xl;
+    }
+    h2 {
+        @apply text-3xl;
+    }
+    h3 {
+        @apply text-2xl;
+    }
+    a {
+        @apply text-primary hover:text-primary-foreground transition-colors duration-200;
+    }
 }
 
 @layer components {
-  .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-colors duration-200;
-  }
-  .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
-  }
-  .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90;
-  }
+    .btn {
+        @apply px-4 py-2 rounded-md font-medium transition-colors duration-200;
+    }
+    .btn-primary {
+        @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    }
+    .btn-secondary {
+        @apply bg-secondary text-secondary-foreground hover:bg-secondary/90;
+    }
+}
+
+@keyframes shine {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes skeleton-shine {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(200%);
+    }
+}
+
+.skeleton-shine {
+    animation: skeleton-shine 2s infinite linear;
 }

@@ -1,10 +1,11 @@
 "use client";
-
 import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HomeIcon, RefreshIcon } from "@/components/ui/Icons";
+import { HomeIcon, RefreshIcon, AlertCircleIcon } from "@/components/ui/Icons";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export default function Error({
   error,
@@ -18,40 +19,67 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80">
-      <header className="flex justify-between items-center p-6 bg-card shadow-md"></header>
-      <main className="flex-grow container mx-auto px-4 py-12 sm:px-6 lg:px-8 max-w-4xl flex items-center justify-center">
-        <Card className="shadow-lg border border-primary/10 rounded-xl overflow-hidden w-full max-w-md">
-          <CardHeader className="bg-primary/5 border-b border-primary/10">
-            <CardTitle className="text-3xl font-bold text-center text-primary">
-              Oops! Something went wrong
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground mb-6">
-              We&apos;re sorry, but we encountered an unexpected error.
-            </p>
-            <div className="flex justify-center space-x-4">
-              <Button
-                onClick={() => reset()}
-                className="transition duration-300 ease-in-out transform hover:scale-105"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/80 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-md"
+      >
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-destructive/20 via-destructive/10 to-transparent rounded-2xl blur-lg" />
+          <Card className="relative bg-card/50 backdrop-blur-sm border-primary/10 rounded-2xl overflow-hidden">
+            <CardHeader className="space-y-4 border-b border-primary/10 p-6">
+              <motion.div
+                initial={{ scale: 0.5 }}
+                animate={{
+                  scale: [0.5, 1.2, 1],
+                  rotate: [0, -10, 0],
+                }}
+                transition={{ duration: 0.5 }}
+                className="mx-auto p-4 bg-destructive/10 rounded-xl w-fit"
               >
-                <RefreshIcon className="w-5 h-5 mr-2" />
-                Try again
-              </Button>
-              <Link href="/" passHref>
+                <AlertCircleIcon className="w-10 h-10 text-destructive" />
+              </motion.div>
+              <CardTitle className="text-2xl sm:text-3xl font-bold text-center text-destructive">
+                Oops! Something went wrong
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="p-6 space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-2 text-center"
+              >
+                <p className="text-muted-foreground">
+                  We&apos;re sorry, but we encountered an unexpected error. Our
+                  team has been notified and is working on a fix.
+                </p>
+                <p className="text-xs text-destructive/80">
+                  Error: {error.message || "Unknown error"}
+                </p>
+              </motion.div>
+
+              <div className="flex flex-col sm:flex-row justify-center gap-3">
                 <Button
-                  variant="outline"
-                  className="transition duration-300 ease-in-out transform hover:scale-105"
+                  onClick={reset}
+                  className={cn(
+                    "group transition-all duration-300",
+                    "bg-destructive hover:bg-destructive/90",
+                  )}
                 >
-                  <HomeIcon className="w-5 h-5 mr-2" />
+                  <RefreshIcon className="w-5 h-5 mr-2 transition-transform duration-500 group-hover:rotate-180" />
+                  Try again
+                </Button>
+                <Button className="group transition-all duration-300 bg-foreground hover:bg-foreground/90">
+                  <HomeIcon className="w-5 h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
                   Go Home
                 </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
     </div>
   );
 }

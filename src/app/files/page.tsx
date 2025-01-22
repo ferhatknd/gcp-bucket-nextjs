@@ -1,18 +1,17 @@
 "use client";
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useFileManagement } from "@/hooks/useFileManagement";
 import { SearchBar } from "@/components/ui/SearchBar";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { FileContent } from "@/components/file/FileManager";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
-import { HomeIcon } from "@/components/ui/Icons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HomeIcon, FileStatsIcon, DatabaseIcon } from "@/components/ui/Icons";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { formatFileSize, cn } from "@/lib/utils";
 
 const FilesPage = () => {
-  const [error, setError] = useState(null);
   const {
     files,
     loading,
@@ -33,46 +32,80 @@ const FilesPage = () => {
     fetchFiles();
   }, [fetchFiles, setDisabledPagination]);
 
-  const handleRefresh = useCallback(async () => {
-    await fetchFiles();
-  }, [fetchFiles]);
-
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80">
-      <header className="flex flex-col sm:flex-row justify-between items-center p-4 sm:p-6 bg-card shadow-md">
-        <Button
-          onClick={() => router.push("/")}
-          variant="outline"
-          className="transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary/10 rounded-full w-full sm:w-auto mb-2 sm:mb-0"
-        >
-          <HomeIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-          <span className="text-sm sm:text-base">Home</span>
-        </Button>
-        <div className="flex-shrink-0 mt-2 sm:mt-0">
-          <ThemeSwitch />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80"
+    >
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className="sticky top-0 z-40 border-b border-primary/10 bg-gradient-to-b from-background/80 to-background/20 backdrop-blur-xl"
+      >
+        <div className="container mx-auto px-2 sm:px-4 h-16">
+          <div className="flex h-full items-center justify-between">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                onClick={() => router.push("/")}
+                variant="ghost"
+                className="group flex items-center gap-2 px-2 sm:px-4"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  <HomeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary relative transition-transform duration-300 group-hover:scale-110" />
+                </div>
+                <span className="font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent text-sm sm:text-base">
+                  Home
+                </span>
+              </Button>
+            </motion.div>
+            <ThemeSwitch />
+          </div>
         </div>
-      </header>
-      <main className="flex-grow container mx-auto px-4 py-6 sm:py-12 sm:px-6 lg:px-8 max-w-4xl">
-        <Card className="shadow-lg border border-primary/10 rounded-xl overflow-hidden">
-          <CardHeader className="bg-primary/5 border-b border-primary/10 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <CardTitle className="text-2xl sm:text-3xl font-bold text-primary">
+      </motion.header>
+
+      <main className="flex-grow container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-5xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4 sm:space-y-6"
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex-1">
+              <motion.h1
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[hsl(var(--gradient-1))] via-[hsl(var(--gradient-2))] to-[hsl(var(--gradient-3))] bg-clip-text text-transparent"
+              >
                 File Manager
-              </CardTitle>
+              </motion.h1>
             </div>
-            <div className="mt-4">
-              <SearchBar
-                searchTerm={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <Badge
+                variant="outline"
+                className="bg-card/50 backdrop-blur-sm text-xs sm:text-sm"
+              >
+                <FileStatsIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
+                {totalFiles} files
+              </Badge>
+              <Badge
+                variant="outline"
+                className="bg-card/50 backdrop-blur-sm text-xs sm:text-sm"
+              >
+                <DatabaseIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
+                {formatFileSize(totalSize)}
+              </Badge>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            {loading ? (
-              <LoadingIndicator loading="files" />
-            ) : error ? (
-              <p className="text-destructive text-center py-4">{error}</p>
-            ) : (
+          </div>
+
+          <SearchBar
+            searchTerm={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+
+          <div className="relative bg-card/50 backdrop-blur-sm rounded-xl border border-primary/10 shadow-lg overflow-hidden">
+            <div className="p-2 sm:p-4 md:p-6">
               <FileContent
                 loading={loading}
                 initialLoadDone={initialLoadDone}
@@ -84,15 +117,15 @@ const FilesPage = () => {
                 }))}
                 onCopyAction={handleCopy}
                 onDownloadAction={handleDownload}
-                onRefreshAction={handleRefresh}
+                onRefreshAction={fetchFiles}
                 totalFiles={totalFiles}
                 totalSize={totalSize}
               />
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </motion.div>
       </main>
-    </div>
+    </motion.div>
   );
 };
 

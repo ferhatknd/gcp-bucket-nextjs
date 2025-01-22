@@ -8,23 +8,37 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   const authenticate = async () => {
+    if (!adminApiKey.trim()) {
+      setError("Please enter an API key");
+      toast.error("Please enter an API key");
+      return;
+    }
+
     setIsAuthenticating(true);
     setError(null);
+
     try {
-      const response = await fetch("/api/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ apiKey: adminApiKey }),
-      });
-      if (!response.ok) throw new Error("Authentication failed");
+      // Check against env variable
+      if (adminApiKey !== process.env.NEXT_PUBLIC_ADMIN_API_KEY) {
+        throw new Error("Invalid API key");
+      }
+
       setIsAuthenticated(true);
       toast.success("Authentication successful");
     } catch (err) {
       console.error("Authentication error:", err);
-      setError("Authentication failed. Please check your API key.");
-      toast.error("Authentication failed");
+      if ((err as Error).name === "AbortError") {
+        setError("Request timed out. Please try again.");
+        toast.error("Request timed out");
+      } else {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Authentication failed. Please check your API key.",
+        );
+        toast.error("Authentication failed");
+      }
+      setIsAuthenticated(false);
     } finally {
       setIsAuthenticating(false);
     }

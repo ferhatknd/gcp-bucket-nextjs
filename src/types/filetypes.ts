@@ -1,4 +1,4 @@
-export const textExtensions = [
+const textExtensions = [
   ".txt",
   ".md",
   ".js",
@@ -74,7 +74,29 @@ export const videoExtensions = [
   ".mpg",
 ] as const;
 
-export type FileType = "text" | "image" | "audio" | "video" | "other";
+export const compressedExtensions = [
+  ".zip",
+  ".rar",
+  ".7z",
+  ".tar",
+  ".gz",
+  ".bz2",
+  ".xz",
+  ".iso",
+  ".tgz",
+  ".tbz2",
+  ".lz",
+  ".lzma",
+  ".zst",
+] as const;
+
+export type FileType =
+  | "text"
+  | "image"
+  | "audio"
+  | "video"
+  | "compressed"
+  | "other";
 
 export function getFileType(extension: string): FileType {
   const lowerExt = extension.toLowerCase();
@@ -82,5 +104,6 @@ export function getFileType(extension: string): FileType {
   if (imageExtensions.includes(lowerExt as any)) return "image";
   if (audioExtensions.includes(lowerExt as any)) return "audio";
   if (videoExtensions.includes(lowerExt as any)) return "video";
+  if (compressedExtensions.includes(lowerExt as any)) return "compressed";
   return "other";
 }

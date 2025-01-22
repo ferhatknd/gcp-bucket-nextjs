@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cloudStorage } from "@/lib/cloudStorage";
 
-const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
+const ADMIN_API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY;
 
 export async function POST(req: NextRequest) {
   const { searchParams } = new URL(req.url);

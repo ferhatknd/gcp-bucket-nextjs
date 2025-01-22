@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import BuyMeCoffeeWidget from "@/components/ui/BuyMeCoffeeWidget";
+import Footer from "@/components/layout/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,6 +58,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="dark">
             {children}
             <BuyMeCoffeeWidget />
+            <Footer />
           </ThemeProvider>
         </body>
       </head>

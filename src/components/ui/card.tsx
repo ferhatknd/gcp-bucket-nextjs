@@ -1,34 +1,104 @@
-import React from "react";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-interface CardProps {
-  className?: string;
-  children: React.ReactNode;
-}
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    gradient?: boolean;
+    hover?: boolean;
+  }
+>(({ className, gradient, hover, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-xl border border-primary/10 bg-card text-card-foreground shadow-sm transition-all duration-300",
+      gradient && [
+        "bg-gradient-to-b from-card/50 to-card shadow-lg",
+        "before:absolute before:inset-0 before:-z-10 before:rounded-xl",
+        "before:bg-gradient-to-b before:from-primary/5 before:to-primary/10",
+        "before:blur-xl before:transition-all before:duration-300",
+      ],
+      hover && "hover:shadow-lg hover:border-primary/20 hover:scale-[1.01]",
+      className,
+    )}
+    {...props}
+  />
+));
+Card.displayName = "Card";
 
-export const Card: React.FC<CardProps> = ({ className = "", children }) => (
-  <div className={`bg-card rounded-lg shadow-md ${className}`}>{children}</div>
-);
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    gradient?: boolean;
+  }
+>(({ className, gradient, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "flex flex-col space-y-1.5 p-6",
+      gradient && "bg-gradient-to-b from-primary/5 to-transparent",
+      "border-b border-primary/10",
+      className,
+    )}
+    {...props}
+  />
+));
+CardHeader.displayName = "CardHeader";
 
-export const CardHeader: React.FC<CardProps> = ({
-  className = "",
-  children,
-}) => <div className={`px-6 py-4 ${className}`}>{children}</div>;
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn(
+      "text-2xl font-semibold leading-tight tracking-tight",
+      "bg-gradient-to-br from-foreground to-foreground/70",
+      "bg-clip-text text-transparent",
+      className,
+    )}
+    {...props}
+  />
+));
+CardTitle.displayName = "CardTitle";
 
-export const CardTitle: React.FC<CardProps> = ({
-  className = "",
-  children,
-}) => <h3 className={`text-lg font-semibold ${className}`}>{children}</h3>;
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+));
+CardDescription.displayName = "CardDescription";
 
-export const CardDescription: React.FC<CardProps> = ({
-  className = "",
-  children,
-}) => (
-  <p className={`text-sm text-muted-foreground mt-1 ${className}`}>
-    {children}
-  </p>
-);
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+));
+CardContent.displayName = "CardContent";
 
-export const CardContent: React.FC<CardProps> = ({
-  className = "",
-  children,
-}) => <div className={`px-6 py-4 ${className}`}>{children}</div>;
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+));
+CardFooter.displayName = "CardFooter";
+
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+};

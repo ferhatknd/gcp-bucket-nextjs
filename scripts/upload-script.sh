@@ -42,6 +42,26 @@ check_requirements() {
     command -v jq >/dev/null 2>&1 || error "jq is required but not installed"
 }
 
+# Check file type and size
+check_file() {
+    local file="$1"
+    local ext="${file##*.}"
+
+    # Check file extension
+    if [[ ! "$ext" =~ ^(zip)$ ]]; then
+        error "Invalid file type. Only zip files are allowed"
+    }
+
+    # Get file size in MB
+    local size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
+    local size_mb=$(echo "scale=2; $size/1048576" | bc)
+
+    # Check file size (500MB - 3000MB)
+    if (( $(echo "$size_mb < 500" | bc -l) )) || (( $(echo "$size_mb > 3000" | bc -l) )); then
+        error "File size must be between 500MB and 3000MB. Current size: ${size_mb}MB"
+    }
+}
+
 # Upload file using curl
 upload_file() {
     local file="$1"
@@ -49,6 +69,9 @@ upload_file() {
     # Check if file exists and is readable
     [[ -f "$file" ]] || error "File not found: $file"
     [[ -r "$file" ]] || error "Cannot read file: $file"
+
+    # Check file type and size
+    check_file "$file"
 
     # Get file size in bytes
     local size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)

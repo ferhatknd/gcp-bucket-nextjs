@@ -1,29 +1,33 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
-import { Button } from "@/components/ui/button";
-import { TextPreview } from "@/components/previews/TextPreview";
-import { ImagePreview } from "@/components/previews/ImagePreview";
-import { AudioPreview } from "@/components/previews/AudioPreview";
-import { VideoPreview } from "@/components/previews/VideoPreview";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
-import { getFileType } from "@/types/filetypes";
+import React, { useState, useEffect } from "react";
 import { useFileManagement } from "@/hooks/useFileManagement";
 import { formatFileSize } from "@/lib/utils";
-import { CopyIcon } from "@/components/ui/Icons";
 import Header from "./Header";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
-import { FilePreviewSkeleton } from "@/components/ui/FilePreviewSkeleton";
+import { motion } from "framer-motion";
+import { getFileType } from "@/types/filetypes";
+import {
+  getFileIcon,
+  FileStatsIcon,
+  ClockIcon,
+  DatabaseIcon,
+  FileIcon,
+  LinkIcon,
+  AlertCircleIcon,
+} from "@/components/ui/Icons";
+import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface FileDetails {
   name: string;
   size: number;
   updatedAt: string;
-}
-
-interface PreviewData {
-  content?: string;
-  previewUrl?: string;
-  fileType?: string;
+  contentType?: string;
+  etag?: string;
+  generation?: string;
+  id?: string;
+  timeCreated?: string;
 }
 
 export default function FilePage({
@@ -31,22 +35,19 @@ export default function FilePage({
 }: {
   params: Promise<{ filename: string }>;
 }) {
-  const unwrappedParams = use(params);
+  const resolvedParams = React.use(params);
   const [fileDetails, setFileDetails] = useState<FileDetails | null>(null);
-  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const { handleDownload, handleCopy } = useFileManagement();
   const [loading, setLoading] = useState(true);
+  const { handleDownload, handleCopy } = useFileManagement();
 
-  const fileName = decodeURIComponent(unwrappedParams.filename);
+  const fileName = decodeURIComponent(resolvedParams.filename);
   const fileExtension = fileName
     .substring(fileName.lastIndexOf("."))
     .toLowerCase();
   const fileType = getFileType(fileExtension);
-
-  const buttonClasses =
-    "transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:text-primary-foreground";
+  const FileTypeIcon = getFileIcon(fileName);
 
   useEffect(() => {
     const fetchFileDetails = async () => {
@@ -59,27 +60,54 @@ export default function FilePage({
         setFileDetails(data);
       } catch (err) {
         setError("Failed to load file details");
-      }
-    };
-
-    const fetchPreviewData = async () => {
-      try {
-        const response = await fetch(
-          `/api/preview?filename=${encodeURIComponent(fileName)}`,
-        );
-        if (!response.ok) throw new Error("Failed to fetch preview data");
-        const data = await response.json();
-        setPreviewData(data);
-      } catch (err) {
-        setError("Failed to load file preview");
       } finally {
         setLoading(false);
       }
     };
 
     fetchFileDetails();
-    fetchPreviewData();
   }, [fileName]);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text:", err);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80">
+        <Header
+          handleCopy={() => {}}
+          handleDownload={() => {}}
+          copied={false}
+        />
+        <div className="fixed top-4 right-4 z-50">
+          <ThemeSwitch />
+        </div>
+        <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative w-full max-w-md"
+          >
+            <div className="absolute inset-0 bg-destructive/20 rounded-2xl" />
+            <div className="relative bg-card/50 rounded-2xl border border-destructive/20 p-6 text-center">
+              <AlertCircleIcon className="w-12 h-12 text-destructive mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-destructive mb-2">
+                Error Loading File
+              </h2>
+              <p className="text-muted-foreground">{error}</p>
+            </div>
+          </motion.div>
+        </main>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -89,162 +117,188 @@ export default function FilePage({
           handleDownload={() => {}}
           copied={false}
         />
-        <FilePreviewSkeleton />
+        <div className="fixed top-4 right-4 z-50">
+          <ThemeSwitch />
+        </div>
+        <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
+          <LoadingIndicator loading="file details" />
+        </main>
       </div>
     );
   }
 
-  function renderPreview() {
-    if (!previewData) return null;
-
-    if (previewData.content) {
-      return <TextPreview content={previewData.content} />;
-    }
-
-    if (previewData.previewUrl) {
-      switch (fileType) {
-        case "image":
-          return <ImagePreview src={previewData.previewUrl} alt={fileName} />;
-        case "audio":
-          return <AudioPreview src={previewData.previewUrl} />;
-        case "video":
-          return <VideoPreview src={previewData.previewUrl} />;
-        default:
-          return (
-            <p className="text-gray-600 dark:text-gray-400">
-              Preview is not available for this file type. Please download to
-              view its contents.
-            </p>
-          );
-      }
-    }
-
-    return (
-      <p className="text-gray-600 dark:text-gray-400">
-        This file type cannot be previewed. Please download to view its
-        contents.
-      </p>
-    );
-  }
-
-  function handleFilenameCopy(filename: string) {
-    if (!filename) return;
-
-    // Use only the modern Clipboard API
-    navigator.clipboard
-      .writeText(filename)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-        // Show user feedback if copy fails
-        setError("Failed to copy filename to clipboard");
-      });
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background/80">
-        <LoadingIndicator loading="file details" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen text-red-500">
-        {error}
-      </div>
-    );
-  }
+  const downloadUrl = `${window.location.origin}/api/download?filename=${encodeURIComponent(fileName)}`;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80"
+    >
       <Header
-        handleCopy={() => handleCopy(fileName)}
+        handleCopy={() => copyToClipboard(downloadUrl)}
         handleDownload={() => handleDownload(fileName)}
         copied={copied}
       />
-      <div className="flex justify-end p-4 sm:p-6">
+
+      <div className="fixed top-4 right-4 z-50">
         <ThemeSwitch />
       </div>
-      <main className="flex-grow container mx-auto px-4 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
-        <div className="bg-card rounded-xl shadow-lg border border-primary/10 overflow-hidden">
-          <div className="bg-primary/5 border-b border-primary/10 p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-primary text-center">
-              File Details
-            </h2>
+
+      <main className="flex-grow container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
+        {/* File Overview Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/2 rounded-2xl" />
+          <div className="relative bg-card/50 rounded-2xl border border-primary/10 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+              <div className="p-3 sm:p-4 bg-primary/5 rounded-xl">
+                <FileTypeIcon className="w-12 h-12 sm:w-16 sm:h-16 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <h1 className="text-lg sm:text-2xl font-bold mb-2 break-words px-2 sm:px-0">
+                  {fileDetails?.name}
+                </h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
+                    <FileStatsIcon className="w-4 h-4 text-primary/60" />
+                    <span className="text-muted-foreground">Type:</span>
+                    <span className="font-medium">
+                      {fileType.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
+                    <DatabaseIcon className="w-4 h-4 text-primary/60" />
+                    <span className="text-muted-foreground">Size:</span>
+                    <span className="font-medium">
+                      {formatFileSize(fileDetails?.size || 0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {[
-                {
-                  label: "File Name",
-                  value: fileDetails?.name,
-                  isCopyable: true,
-                },
-                {
-                  label: "File Size",
-                  value: formatFileSize(fileDetails?.size || 0),
-                },
-                {
-                  label: "Last Modified",
-                  value: new Date(
-                    fileDetails?.updatedAt || "",
-                  ).toLocaleString(),
-                },
-                {
-                  label: "File Type",
-                  value: fileType.charAt(0).toUpperCase() + fileType.slice(1),
-                },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="space-y-2 bg-primary/5 p-3 sm:p-4 rounded-lg"
-                >
-                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                    {item.label}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold text-xs sm:text-sm lg:text-base truncate flex-grow">
-                      {item.value}
-                    </p>
-                    {item.isCopyable && (
-                      <Button
-                        onClick={() => {
-                          handleFilenameCopy(item.value || "");
-                        }}
-                        variant="ghost"
-                        size="sm"
-                        className={`${buttonClasses} p-1 hover:bg-primary/10 ml-2`}
-                        disabled={copied}
-                      >
-                        <CopyIcon
-                          className={`w-3 h-3 sm:w-4 sm:h-4 ${copied ? "text-green-500" : ""}`}
-                        />
-                      </Button>
+        </motion.div>
+
+        {/* File Details Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="relative"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/2 rounded-2xl" />
+          <div className="relative bg-card/50 rounded-2xl border border-primary/10">
+            <div className="border-b border-primary/10 p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold">File Details</h2>
+            </div>
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Time Information */}
+                <div className="space-y-3 sm:space-y-4">
+                  <h3 className="font-medium text-base sm:text-lg flex items-center gap-2">
+                    <ClockIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary/60" />
+                    Time Information
+                  </h3>
+                  <div className="space-y-2">
+                    <DetailRow
+                      label="Last Modified"
+                      value={new Date(
+                        fileDetails?.updatedAt || "",
+                      ).toLocaleString()}
+                    />
+                    {fileDetails?.timeCreated && (
+                      <DetailRow
+                        label="Created"
+                        value={new Date(
+                          fileDetails.timeCreated,
+                        ).toLocaleString()}
+                      />
                     )}
                   </div>
                 </div>
-              ))}
+
+                {/* Technical Details */}
+                <div className="space-y-3 sm:space-y-4">
+                  <h3 className="font-medium text-base sm:text-lg flex items-center gap-2">
+                    <FileIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary/60" />
+                    Technical Details
+                  </h3>
+                  <div className="space-y-2">
+                    {fileDetails?.contentType && (
+                      <DetailRow
+                        label="MIME Type"
+                        value={fileDetails.contentType}
+                      />
+                    )}
+                    <DetailRow label="File Extension" value={fileExtension} />
+                    <DetailRow
+                      label="File Type"
+                      value={
+                        fileType.charAt(0).toUpperCase() +
+                        fileType.slice(1).toLowerCase()
+                      }
+                    />
+                    {fileDetails?.size && (
+                      <DetailRow
+                        label="Size in Bytes"
+                        value={fileDetails.size.toString()}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Download Link */}
+                <div className="md:col-span-2 space-y-3 sm:space-y-4">
+                  <h3 className="font-medium text-base sm:text-lg flex items-center gap-2">
+                    <LinkIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary/60" />
+                    Download Link
+                  </h3>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-primary/5 rounded-lg">
+                    <div className="w-full sm:flex-1 truncate font-mono text-xs sm:text-sm">
+                      {downloadUrl}
+                    </div>
+                    <Button
+                      onClick={() => copyToClipboard(downloadUrl)}
+                      variant="outline"
+                      className={cn(
+                        "w-full sm:w-auto transition-all duration-300",
+                        copied
+                          ? "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                          : "hover:border-primary/50",
+                      )}
+                    >
+                      {copied ? "Copied!" : "Copy"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="bg-card rounded-xl shadow-lg border border-primary/10 overflow-hidden">
-          <div className="bg-primary/5 border-b border-primary/10 p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-primary text-center">
-              File Preview
-            </h2>
-          </div>
-          <div className="p-4 sm:p-6">
-            <div className="max-w-full sm:max-w-4xl mx-auto">
-              {renderPreview()}
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </main>
+    </motion.div>
+  );
+}
+
+function DetailRow({
+  label,
+  value,
+  tooltip,
+}: {
+  label: string;
+  value: string;
+  tooltip?: string;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+      <span className="text-sm text-muted-foreground" title={tooltip}>
+        {label}:
+      </span>
+      <span className="font-medium break-all">{value}</span>
     </div>
   );
 }

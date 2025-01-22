@@ -1,28 +1,91 @@
-"use client";
-import React, { useState } from "react";
+import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { cn } from "@/lib/utils";
+import { cva } from "class-variance-authority";
 
-interface TooltipProps {
-  content: string;
-  children: React.ReactElement<any>;
+const tooltipVariants = cva(
+  [
+    "z-50 overflow-hidden rounded-md",
+    "border border-primary/10",
+    "bg-background/95 backdrop-blur-sm",
+    "px-3 py-1.5 text-sm text-foreground",
+    "shadow-md animate-in fade-in-0",
+    "zoom-in-95 data-[state=closed]:animate-out",
+    "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+    "data-[side=bottom]:slide-in-from-top-2",
+    "data-[side=left]:slide-in-from-right-2",
+    "data-[side=right]:slide-in-from-left-2",
+    "data-[side=top]:slide-in-from-bottom-2",
+  ].join(" "),
+  {
+    variants: {
+      variant: {
+        default: "shadow-md",
+        error:
+          "bg-destructive/90 text-destructive-foreground border-destructive/20",
+        success: "bg-green-500/90 text-white border-green-600/20",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+);
+
+export interface TooltipProps extends TooltipPrimitive.TooltipContentProps {
+  variant?: "default" | "error" | "success";
+  delayDuration?: number;
+  text: string;
+  side?: "top" | "right" | "bottom" | "left";
+  align?: "start" | "center" | "end";
+  showArrow?: boolean;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
-  const [isVisible, setIsVisible] = useState(false);
+const TooltipProvider = TooltipPrimitive.Provider;
+const TooltipTrigger = TooltipPrimitive.Trigger;
 
+const Tooltip = ({
+  children,
+  text,
+  delayDuration = 200,
+  variant,
+  side = "top",
+  align = "center",
+  showArrow = true,
+  className,
+  ...props
+}: {
+  children: React.ReactNode;
+} & TooltipProps) => {
   return (
-    <div className="relative inline-block">
-      {React.cloneElement(children, {
-        onMouseEnter: () => setIsVisible(true),
-        onMouseLeave: () => setIsVisible(false),
-        onFocus: () => setIsVisible(true),
-        onBlur: () => setIsVisible(false),
-      })}
-      {isVisible && (
-        <div className="absolute z-10 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm tooltip dark:bg-gray-700 top-full left-1/2 transform -translate-x-1/2 mt-2">
-          {content}
-          <div className="tooltip-arrow absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border-8 border-transparent border-b-gray-900 dark:border-b-gray-700"></div>
-        </div>
-      )}
-    </div>
+    <TooltipProvider delayDuration={delayDuration}>
+      <TooltipPrimitive.Root>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipPrimitive.Portal>
+          <TooltipPrimitive.Content
+            side={side}
+            align={align}
+            className={cn(tooltipVariants({ variant }), className)}
+            {...props}
+          >
+            {text}
+            {showArrow && (
+              <TooltipPrimitive.Arrow
+                className={cn(
+                  "fill-background/95",
+                  "border-primary/10",
+                  variant === "error" && "fill-destructive/90",
+                  variant === "success" && "fill-green-500/90",
+                )}
+                width={11}
+                height={5}
+              />
+            )}
+          </TooltipPrimitive.Content>
+        </TooltipPrimitive.Portal>
+      </TooltipPrimitive.Root>
+    </TooltipProvider>
   );
 };
+
+export { Tooltip, TooltipTrigger, TooltipProvider };

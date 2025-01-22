@@ -572,6 +572,69 @@ const ManageIcon = createIcon(
   </>,
 );
 
+const LinkIcon = createIcon(
+  <>
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </>,
+);
+
+const DatabaseIcon = createIcon(
+  <>
+    <ellipse cx="12" cy="5" rx="9" ry="3" />
+    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+  </>,
+);
+
+const WrenchIcon = createIcon(
+  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />,
+);
+
+const ClockIcon = createIcon(
+  <>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </>,
+);
+
+const AlertIcon = createIcon(
+  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm0-11V7m0 8h.01" />,
+);
+
+const AlertTriangleIcon = createIcon(
+  <>
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    <path d="M12 9v4m0 4h.01" />
+  </>,
+);
+
+const AlertCircleIcon = createIcon(
+  <>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </>,
+);
+
+const FileSearchIcon = createIcon(
+  <>
+    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+    <path d="M14 2v6h6" />
+    <circle cx="11" cy="14" r="2" />
+    <path d="M13 16l2 2" />
+  </>,
+);
+
+const AdminIcon = createIcon(
+  <>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </>,
+);
+
 export {
   CloudIcon,
   CopyIcon,
@@ -625,4 +688,13 @@ export {
   UserIcon,
   getFileIcon,
   ManageIcon,
+  LinkIcon,
+  DatabaseIcon,
+  WrenchIcon,
+  ClockIcon,
+  AlertIcon,
+  AlertTriangleIcon,
+  AlertCircleIcon,
+  FileSearchIcon,
+  AdminIcon,
 };

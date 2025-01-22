@@ -1,5 +1,5 @@
 import { PageLoading } from "@/components/ui/PageLoading";
 
 export default function RootLoading() {
-  return <PageLoading />;
+  return <PageLoading message="Loading..." />;
 }

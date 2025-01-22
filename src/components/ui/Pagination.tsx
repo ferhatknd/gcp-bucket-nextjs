@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/ui/Icons";
+import { cn } from "@/lib/utils";
 
 interface PaginationProps {
   currentPage: number;
@@ -13,47 +14,63 @@ export function Pagination({
   totalPages,
   onPageChange,
 }: PaginationProps) {
-  const buttonClasses = `
-    transition duration-300 ease-in-out
-    hover:bg-primary hover:text-primary-foreground
-    focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50
-    flex items-center justify-center px-3 py-2
-    text-sm sm:text-base font-medium rounded-md
-  `;
-
   return (
-    <nav
-      className="mt-8 flex flex-wrap justify-center items-center gap-4"
-      aria-label="Pagination"
-    >
-      <Button
-        onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
-        disabled={currentPage === 1}
-        className={`${buttonClasses} ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-        variant="outline"
-      >
-        <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-        <span className="ml-2 hidden sm:inline">Previous</span>
-      </Button>
+    <nav className="flex flex-col sm:flex-row justify-between items-center gap-4 px-2">
+      <p className="text-sm text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </p>
+      <div className="flex items-center gap-2">
+        <Button
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          variant="outline"
+          className={cn(
+            "group transition-all duration-300",
+            "hover:border-primary/50 hover:bg-primary/5",
+            "disabled:opacity-50 disabled:hover:bg-transparent",
+          )}
+        >
+          <ChevronLeftIcon className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+          Previous
+        </Button>
 
-      <div className="flex items-center bg-secondary text-secondary-foreground rounded-md overflow-hidden">
-        <span className="px-3 py-2 text-sm sm:text-base font-medium border-r border-secondary-foreground/20">
-          Page {currentPage}
-        </span>
-        <span className="px-3 py-2 text-sm sm:text-base font-medium">
-          of {totalPages}
-        </span>
+        <div className="hidden sm:flex items-center gap-2">
+          {[...Array(totalPages)].map((_, i) => {
+            const page = i + 1;
+            const isActive = page === currentPage;
+
+            return (
+              <Button
+                key={page}
+                onClick={() => onPageChange(page)}
+                variant={isActive ? "default" : "outline"}
+                className={cn(
+                  "min-w-[40px] transition-all duration-300",
+                  isActive
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "hover:border-primary/50 hover:bg-primary/5",
+                )}
+              >
+                {page}
+              </Button>
+            );
+          })}
+        </div>
+
+        <Button
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          variant="outline"
+          className={cn(
+            "group transition-all duration-300",
+            "hover:border-primary/50 hover:bg-primary/5",
+            "disabled:opacity-50 disabled:hover:bg-transparent",
+          )}
+        >
+          Next
+          <ChevronRightIcon className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+        </Button>
       </div>
-
-      <Button
-        onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
-        disabled={currentPage === totalPages}
-        className={`${buttonClasses} ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""}`}
-        variant="outline"
-      >
-        <span className="mr-2 hidden sm:inline">Next</span>
-        <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-      </Button>
     </nav>
   );
 }

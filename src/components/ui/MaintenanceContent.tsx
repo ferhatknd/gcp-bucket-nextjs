@@ -1,33 +1,61 @@
+"use client";
 import React from "react";
 import useMaintenance from "@/hooks/useMaintenance";
+import { motion } from "framer-motion";
+import { WrenchIcon } from "@/components/ui/Icons";
 
 export function MaintenanceContent() {
   const { reasonForMaintenance } = useMaintenance();
   const reason = reasonForMaintenance || "No reason provided";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-      <div className="bg-card rounded-xl shadow-lg border border-primary/10 overflow-hidden w-full max-w-2xl">
-        <div className="bg-primary/5 border-b border-primary/10 p-4 sm:p-6">
-          <h2 className="text-xl sm:text-2xl md:text-3xl text-primary text-center">
-            Maintenance in Progress
-          </h2>
-        </div>
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-          <p className="text-base sm:text-lg text-center">
-            We&apos;re currently performing some maintenance on our site. Our
-            team (literally one person) is working hard to improve our services.
-            We&apos;ll be back online shortly.
-          </p>
-          <p className="text-base sm:text-lg text-center">
-            Reason for maintenance:{" "}
-            <strong className="break-words">{reason}</strong>
-          </p>
-          <p className="text-sm sm:text-md text-muted-foreground text-center">
-            Thank you for your patience and understanding.
-          </p>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+
+      <div className="relative w-full max-w-2xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl blur-xl" />
+        <div className="relative bg-card/50 backdrop-blur-sm rounded-2xl border border-primary/10 overflow-hidden">
+          <div className="px-6 py-8 sm:p-10 space-y-6">
+            <div className="space-y-2 text-center">
+              <WrenchIcon className="w-12 h-12 mx-auto text-primary opacity-80" />
+              <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Maintenance in Progress
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-center text-muted-foreground">
+                We&apos;re currently performing maintenance to improve our
+                services. Our team is working diligently to minimize downtime.
+              </p>
+
+              <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
+                <p className="text-sm text-center">
+                  <span className="font-semibold text-primary">Reason:</span>{" "}
+                  <span className="text-muted-foreground">{reason}</span>
+                </p>
+              </div>
+
+              <p className="text-sm text-center text-muted-foreground">
+                Thank you for your patience and understanding. We&apos;ll be
+                back online shortly.
+              </p>
+            </div>
+
+            <div className="pt-4 flex justify-center">
+              <div className="space-x-1">
+                <span className="w-2 h-2 rounded-full bg-primary/60 inline-block animate-bounce" />
+                <span className="w-2 h-2 rounded-full bg-primary/60 inline-block animate-bounce [animation-delay:0.2s]" />
+                <span className="w-2 h-2 rounded-full bg-primary/60 inline-block animate-bounce [animation-delay:0.4s]" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
