@@ -88,11 +88,13 @@ export default function InfoPage() {
                       className="group transition-all duration-300 hover:border-primary/50"
                       onClick={() =>
                         navigator.clipboard.writeText(
-                          window.location.origin + "/download-script",
+                          "wget --content-disposition " +
+                            window.location.origin +
+                            "/download-script",
                         )
                       }
                     >
-                      Copy URL
+                      Copy command
                     </Button>
                   </div>
                 </div>
