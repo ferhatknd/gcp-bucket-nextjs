@@ -53,10 +53,6 @@ export function FileList({
   const pathname = usePathname();
   const currentRoute = pathname.split("?")[0];
 
-  if (loading) {
-    return <FilesSkeleton />;
-  }
-
   const buttonClasses =
     "transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:text-primary-foreground";
 
@@ -99,6 +95,10 @@ export function FileList({
       return 0;
     });
   }, [files, sortState]);
+
+  if (loading) {
+    return <FilesSkeleton />;
+  }
 
   function formatDate(dateString: string) {
     const date = new Date(dateString);
