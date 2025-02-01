@@ -56,9 +56,9 @@ check_file() {
     local size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
     local size_mb=$(echo "scale=2; $size/1048576" | bc)
 
-    # Check file size (500MB - 3000MB)
-    if (( $(echo "$size_mb < 500" | bc -l) )) || (( $(echo "$size_mb > 3096" | bc -l) )); then
-        error "File size must be between 500MB and 3096MB. Current size: ${size_mb}MB"
+    # Check file size (500MB - 3072MB)
+    if (( $(echo "$size_mb < 500" | bc -l) )) || (( $(echo "$size_mb > 3072" | bc -l) )); then
+        error "File size must be between 500MB and 3072MB. Current size: ${size_mb}MB"
     fi
 }
 
