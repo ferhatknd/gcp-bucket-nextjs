@@ -53,9 +53,6 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
   const [newFileName, setNewFileName] = useState("");
   const [adminApiKey, setAdminApiKey] = useState("");
 
-  const buttonClasses =
-    "transition duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:text-primary-foreground";
-
   const sortedFiles = useMemo(() => {
     return [...files].sort((a, b) => {
       const order = sortState.orders[sortState.by];
@@ -82,61 +79,6 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
       date.toLocaleTimeString().slice(0, -3).replace(":", ".")
     );
   }
-
-  const SortButton = ({
-    onClick,
-    active,
-    icon,
-    label,
-  }: {
-    onClick: () => void;
-    active: boolean;
-    icon: JSX.Element;
-    label: string;
-  }) => (
-    <Button
-      onClick={onClick}
-      variant={active ? "default" : "outline"}
-      size="sm"
-      className={buttonClasses}
-    >
-      <span className="mr-2">{icon}</span>
-      {label}
-    </Button>
-  );
-
-  const FileActionButton = ({
-    variant,
-    onClick,
-    disabled,
-    icon,
-    label,
-  }: {
-    variant:
-      | "link"
-      | "default"
-      | "destructive"
-      | "outline"
-      | "secondary"
-      | "ghost"
-      | null
-      | undefined;
-    onClick: () => void;
-    disabled: boolean;
-    icon: JSX.Element;
-    label: string;
-  }) => (
-    <Button
-      variant={variant}
-      size="sm"
-      onClick={onClick}
-      disabled={disabled}
-      className={buttonClasses}
-    >
-      <span className="mr-2">{icon}</span>
-      {label}
-    </Button>
-  );
 
   const handleDelete = async (filename: string) => {
     setFileToDelete(filename);
@@ -196,7 +138,6 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
       const response = await fetch("/api/rename", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${adminApiKey}`,
         },
         body: JSON.stringify({

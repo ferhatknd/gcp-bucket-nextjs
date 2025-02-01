@@ -5,7 +5,7 @@ export const cloudStorage = {
   uploadFile: async (file: Buffer, filename: string) => {
     const blob = bucket.file(filename);
     await blob.save(file);
-    await blob.makePublic(); // Make the file public
+    await blob.makePublic();
     return filename;
   },
   createWriteStream: (filename: string) => {
