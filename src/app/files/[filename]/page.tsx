@@ -52,7 +52,7 @@ export default function FilePage({
     const fetchFileDetails = async () => {
       try {
         const response = await fetch(
-          `/api/files?filename=${encodeURIComponent(fileName)}`
+          `/api/files?filename=${encodeURIComponent(fileName)}`,
         );
         if (!response.ok) throw new Error("Failed to fetch file details");
         const data = await response.json();
@@ -198,14 +198,14 @@ export default function FilePage({
                     <DetailRow
                       label="Last Modified"
                       value={new Date(
-                        fileDetails?.updatedAt || ""
+                        fileDetails?.updatedAt || "",
                       ).toLocaleString()}
                     />
                     {fileDetails?.timeCreated && (
                       <DetailRow
                         label="Created"
                         value={new Date(
-                          fileDetails.timeCreated
+                          fileDetails.timeCreated,
                         ).toLocaleString()}
                       />
                     )}
@@ -259,7 +259,7 @@ export default function FilePage({
                         "w-full sm:w-auto transition-all duration-300",
                         copied
                           ? "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                          : "hover:border-primary/50"
+                          : "hover:border-primary/50",
                       )}
                     >
                       {copied ? "Copied!" : "Copy"}
