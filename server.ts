@@ -80,13 +80,17 @@ const validateUploadedFile = async (
   // Size validation
   if (buffer.length < minSize) {
     throw new UploadError(
-      `File ${filename} is too small. Minimum size is ${minSize / 1024 / 1024}MB.`,
+      `File ${filename} is too small. Minimum size is ${
+        minSize / 1024 / 1024
+      }MB.`,
       400,
     );
   }
   if (buffer.length > maxSize) {
     throw new UploadError(
-      `File ${filename} is too large. Maximum size is ${maxSize / 1024 / 1024}MB.`,
+      `File ${filename} is too large. Maximum size is ${
+        maxSize / 1024 / 1024
+      }MB.`,
       400,
     );
   }
@@ -131,7 +135,9 @@ const processFileUpload = async (
         blobStream.destroy();
         reject(
           new UploadError(
-            `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
+            `File size exceeds maximum limit of ${
+              MAX_FILE_SIZE / (1024 * 1024)
+            }MB`,
             400,
           ),
         );
@@ -146,7 +152,9 @@ const processFileUpload = async (
         if (size < MIN_FILE_SIZE) {
           await cloudStorage.deleteFile(filename);
           throw new UploadError(
-            `File size is below minimum requirement of ${MIN_FILE_SIZE / (1024 * 1024)}MB`,
+            `File size is below minimum requirement of ${
+              MIN_FILE_SIZE / (1024 * 1024)
+            }MB`,
             400,
           );
         }
@@ -206,11 +214,12 @@ const getContentDisposition = (
 async function uploadFromDirectLink(directLink: string): Promise<UploadedFile> {
   try {
     const response = await fetch(directLink);
-    if (!response.ok)
+    if (!response.ok) {
       throw new UploadError(
         `Failed to fetch file: ${response.statusText}`,
         400,
       );
+    }
 
     const contentType =
       response.headers.get("content-type") || "application/octet-stream";
@@ -220,37 +229,21 @@ async function uploadFromDirectLink(directLink: string): Promise<UploadedFile> {
       response.headers.get("content-disposition"),
     );
 
-    // Validate content length if available
+    // Pre-validate content length if available
     if (contentLength) {
       const fileSize = parseInt(contentLength, 10);
       validateFileSize(fileSize, filename);
     }
 
-    if (!response.body) throw new UploadError("Response body is null", 400);
+    validateFileType(contentType, filename);
 
-    // Read the entire response into a buffer
-    const chunks: Buffer[] = [];
-    // @ts-ignore
-    const reader = response.body.getReader();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(Buffer.from(value));
+    if (!response.body) {
+      throw new UploadError("Response body is null", 400);
     }
 
-    const buffer = Buffer.concat(chunks);
-
-    // Validate file using the unified validation function
-    await validateUploadedFile(buffer, filename, contentType, {
-      minSize: MIN_FILE_SIZE,
-      maxSize: MAX_FILE_SIZE,
-      forbiddenTypes: FORBIDDEN_MIME_TYPES,
-    });
-
-    // Process the file using the unified processing function
     const { url } = await processFileUpload(
-      Readable.from(buffer),
+      // @ts-ignore
+      Readable.from(response.body),
       filename,
       contentType,
     );
@@ -357,7 +350,11 @@ function validateKernelFile(
 
   if (size < KERNEL_MIN_SIZE || size > KERNEL_MAX_SIZE) {
     throw new UploadError(
-      `Kernel file size must be between 10MB and 50MB. Current size: ${(size / 1024 / 1024).toFixed(2)}MB`,
+      `Kernel file size must be between 10MB and 50MB. Current size: ${(
+        size /
+        1024 /
+        1024
+      ).toFixed(2)}MB`,
       400,
     );
   }
