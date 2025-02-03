@@ -3,26 +3,48 @@ import next from "next";
 import { cloudStorage } from "./src/lib/cloudStorage";
 import cors from "cors";
 import busboy from "busboy";
-import { config } from "dotenv";
 import path from "path";
 import fs from "fs/promises";
+import crypto from "crypto";
+import { fileTypeFromBuffer } from "file-type";
+import dotenv from "dotenv";
+import { Readable } from "stream";
 
-config({ path: "./.env.local " });
+dotenv.config({ path: "./.env.local " });
 
 // Constants
-const MAX_FILE_SIZE = 3 * 1024 * 1024 * 1024; // 3 GB
-const MIN_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
+const MAX_FILE_SIZE = 3072 * 1024 * 1024; // 3072 MB (3 GB)
+const MIN_FILE_SIZE = 512 * 1024 * 1024; // 512 MB
 const BASE_URL = process.env.WEB_URL || "http://localhost:3000";
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const IS_DEV = process.env.NODE_ENV !== "production";
-
-// Forbidden MIME types
+const KERNEL_MIN_SIZE = 9 * 1024 * 1024; // 9 MB
+const KERNEL_MAX_SIZE = 51 * 1024 * 1024; // 51 MB
+const ALLOWED_MIME_TYPES = new Set([
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/octet-stream",
+  "application/x-zip",
+  "multipart/x-zip",
+]);
+const ALLOWED_EXTENSIONS = new Set([".zip"]);
 const FORBIDDEN_MIME_TYPES = new Set(["audio/", "video/", "text/"]);
 
 // File upload interface
 interface UploadedFile {
   name: string;
   url: string;
+}
+
+// Kernel upload interface
+interface KernelUploadResponse {
+  message: string;
+  kernel: {
+    name: string;
+    url: string;
+    size: number;
+    checksum: string;
+  };
 }
 
 // Error handling
@@ -37,6 +59,114 @@ class UploadError extends Error {
 }
 
 // Utility functions
+const validateUploadedFile = async (
+  buffer: Buffer,
+  filename: string,
+  mimeType: string,
+  options: {
+    minSize?: number;
+    maxSize?: number;
+    allowedTypes?: Set<string>;
+    forbiddenTypes?: Set<string>;
+  },
+) => {
+  const {
+    minSize = MIN_FILE_SIZE,
+    maxSize = MAX_FILE_SIZE,
+    allowedTypes,
+    forbiddenTypes = FORBIDDEN_MIME_TYPES,
+  } = options;
+
+  // Size validation
+  if (buffer.length < minSize) {
+    throw new UploadError(
+      `File ${filename} is too small. Minimum size is ${minSize / 1024 / 1024}MB.`,
+      400,
+    );
+  }
+  if (buffer.length > maxSize) {
+    throw new UploadError(
+      `File ${filename} is too large. Maximum size is ${maxSize / 1024 / 1024}MB.`,
+      400,
+    );
+  }
+
+  // Type validation
+  if (allowedTypes && !allowedTypes.has(mimeType)) {
+    throw new UploadError(`File type ${mimeType} is not allowed.`, 400);
+  }
+
+  const isForbiddenType = Array.from(forbiddenTypes).some((type) =>
+    mimeType.startsWith(type),
+  );
+  if (isForbiddenType) {
+    throw new UploadError(
+      `File type not allowed: ${mimeType}. Forbidden file types are not permitted.`,
+      400,
+    );
+  }
+
+  return true;
+};
+
+// Unified file processing function
+const processFileUpload = async (
+  file: NodeJS.ReadableStream,
+  filename: string,
+  mimeType: string,
+): Promise<{ url: string; checksum: string }> => {
+  const hash = crypto.createHash("sha256");
+  const blobStream = cloudStorage.createWriteStream(filename);
+
+  return new Promise((resolve, reject) => {
+    let size = 0;
+
+    file.on("data", (chunk) => {
+      size += chunk.length;
+      hash.update(chunk);
+
+      // Validate file size while streaming
+      if (size > MAX_FILE_SIZE) {
+        (file as any).destroy();
+        blobStream.destroy();
+        reject(
+          new UploadError(
+            `File size exceeds maximum limit of ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
+            400,
+          ),
+        );
+      }
+    });
+
+    file.pipe(blobStream);
+
+    blobStream.on("finish", async () => {
+      try {
+        // Validate minimum file size after upload
+        if (size < MIN_FILE_SIZE) {
+          await cloudStorage.deleteFile(filename);
+          throw new UploadError(
+            `File size is below minimum requirement of ${MIN_FILE_SIZE / (1024 * 1024)}MB`,
+            400,
+          );
+        }
+
+        await finalizeUpload(filename, mimeType);
+        resolve({
+          url: generateDownloadUrl(filename),
+          checksum: hash.digest("hex"),
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    blobStream.on("error", (error) => {
+      reject(new UploadError(`Upload failed: ${error.message}`, 500));
+    });
+  });
+};
+
 const validateFileType = (mimeType: string, _filename: string): void => {
   const isForbiddenType = Array.from(FORBIDDEN_MIME_TYPES).some((type) =>
     mimeType.startsWith(type),
@@ -84,95 +214,51 @@ async function uploadFromDirectLink(directLink: string): Promise<UploadedFile> {
 
     const contentType =
       response.headers.get("content-type") || "application/octet-stream";
-    validateFileType(contentType, directLink);
-
     const contentLength = response.headers.get("content-length");
-    if (contentLength) {
-      const fileSize = parseInt(contentLength, 10);
-      validateFileSize(fileSize, directLink);
-    }
-
     const filename = extractFilename(
       directLink,
       response.headers.get("content-disposition"),
     );
-    const blobStream = cloudStorage.createWriteStream(filename);
+
+    // Validate content length if available
+    if (contentLength) {
+      const fileSize = parseInt(contentLength, 10);
+      validateFileSize(fileSize, filename);
+    }
 
     if (!response.body) throw new UploadError("Response body is null", 400);
 
-    return new Promise((resolve, reject) => {
-      let totalBytes = 0;
-      // @ts-ignore
-      const reader = response.body.getReader();
+    // Read the entire response into a buffer
+    const chunks: Buffer[] = [];
+    // @ts-ignore
+    const reader = response.body.getReader();
 
-      const pump = async () => {
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(Buffer.from(value));
+    }
 
-            if (done) {
-              blobStream.end();
-              break;
-            }
+    const buffer = Buffer.concat(chunks);
 
-            totalBytes += value.length;
-            if (totalBytes > MAX_FILE_SIZE) {
-              reader.cancel();
-              blobStream.destroy();
-              await cloudStorage.deleteFile(filename);
-              reject(new UploadError("File exceeds maximum size limit", 400));
-              return;
-            }
-
-            const writeResult = blobStream.write(value);
-            if (!writeResult) {
-              await new Promise((resolve) => blobStream.once("drain", resolve));
-            }
-          }
-        } catch (error) {
-          reader.cancel();
-          blobStream.destroy();
-          await cloudStorage.deleteFile(filename);
-          reject(
-            new UploadError(
-              `Stream reading error: ${(error as Error).message}`,
-            ),
-          );
-        }
-      };
-
-      blobStream.on("finish", async () => {
-        try {
-          if (totalBytes < MIN_FILE_SIZE) {
-            await cloudStorage.deleteFile(filename);
-            reject(
-              new UploadError("File size is below minimum requirement", 400),
-            );
-            return;
-          }
-          await finalizeUpload(filename, contentType);
-          resolve({
-            name: filename,
-            url: generateDownloadUrl(filename),
-          });
-        } catch (error) {
-          await cloudStorage.deleteFile(filename);
-          reject(
-            new UploadError(
-              `Failed to finalize upload: ${(error as Error).message}`,
-            ),
-          );
-        }
-      });
-
-      blobStream.on("error", async (error) => {
-        reader.cancel();
-        await cloudStorage.deleteFile(filename);
-        reject(new UploadError(`Stream error: ${error.message}`));
-      });
-
-      pump();
+    // Validate file using the unified validation function
+    await validateUploadedFile(buffer, filename, contentType, {
+      minSize: MIN_FILE_SIZE,
+      maxSize: MAX_FILE_SIZE,
+      forbiddenTypes: FORBIDDEN_MIME_TYPES,
     });
+
+    // Process the file using the unified processing function
+    const { url } = await processFileUpload(
+      Readable.from(buffer),
+      filename,
+      contentType,
+    );
+
+    return {
+      name: filename,
+      url,
+    };
   } catch (error) {
     if (error instanceof UploadError) throw error;
     throw new UploadError(
@@ -206,7 +292,6 @@ async function finalizeUpload(
   await cloudStorage.setFileMetadata(filename, {
     contentType,
     contentDisposition: getContentDisposition(contentType, filename),
-    cacheControl: "public, max-age=3600",
   });
 }
 
@@ -215,97 +300,67 @@ async function handleFileUpload(
   filename: string,
   mimeType: string,
 ): Promise<UploadedFile> {
-  return new Promise((resolve, reject) => {
-    let fileSize = 0;
-    let isStreamDestroyed = false;
+  try {
+    validateFileType(mimeType, filename);
+    const { url, checksum } = await processFileUpload(file, filename, mimeType);
+    return { name: filename, url };
+  } catch (error) {
+    throw error instanceof UploadError
+      ? error
+      : new UploadError((error as Error).message);
+  }
+}
 
-    try {
-      validateFileType(mimeType, filename);
-    } catch (error) {
-      if (typeof (file as any).destroy === "function") {
-        (file as any).destroy();
-      }
-      reject(error);
-      return;
-    }
+async function validateZipFile(buffer: Buffer): Promise<boolean> {
+  // Check for ZIP file signature
+  const zipSignature = buffer.slice(0, 4);
+  const isPKZip = zipSignature.toString("hex").startsWith("504b0304");
 
-    const blobStream = cloudStorage.createWriteStream(filename);
-    let sizeValidated = false;
+  if (isPKZip) return true;
 
-    const cleanup = (error?: Error) => {
-      if (!isStreamDestroyed) {
-        isStreamDestroyed = true;
-        if (typeof (file as any).destroy === "function") {
-          (file as any).destroy();
-        }
-        blobStream.destroy();
-        cloudStorage.deleteFile(filename).catch(console.error);
-      }
-      if (error) {
-        reject(
-          error instanceof UploadError ? error : new UploadError(error.message),
-        );
-      }
-    };
+  // Fallback to file-type detection
+  const result = await fileTypeFromBuffer(buffer);
+  return (
+    result?.mime === "application/zip" ||
+    result?.mime === "application/x-zip-compressed" ||
+    result?.mime === "application/octet-stream"
+  );
+}
 
-    file.on("data", (data) => {
-      if (isStreamDestroyed) return;
+function calculateChecksum(buffer: Buffer): string {
+  return crypto.createHash("sha256").update(buffer).digest("hex");
+}
 
-      fileSize += data.length;
+function validateKernelFile(
+  filename: string,
+  mimeType: string,
+  size: number,
+): void {
+  const ext = path.extname(filename).toLowerCase();
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    throw new UploadError("Only .zip files are allowed", 400);
+  }
 
-      try {
-        if (!sizeValidated && fileSize >= MIN_FILE_SIZE) {
-          sizeValidated = true;
-        }
-        if (fileSize > MAX_FILE_SIZE) {
-          const error = new UploadError(
-            `File ${filename} exceeds the maximum allowed size of 3GB`,
-            400,
-          );
-          cleanup(error);
-        }
-      } catch (error) {
-        cleanup(error as Error);
-      }
-    });
+  const isAllowedMimeType = Array.from(ALLOWED_MIME_TYPES).some(
+    (allowed) =>
+      mimeType.includes("zip") ||
+      mimeType === allowed ||
+      mimeType === "application/octet-stream",
+  );
 
-    file.on("end", () => {
-      if (isStreamDestroyed) return;
+  if (!isAllowedMimeType) {
+    throw new UploadError(
+      `Invalid file type: ${mimeType}. Only ZIP files are allowed`,
+      400,
+    );
+  }
 
-      if (!sizeValidated) {
-        cleanup(
-          new UploadError(
-            `File ${filename} is smaller than the minimum size of 500 MB`,
-            400,
-          ),
-        );
-      }
-    });
-
-    file.on("error", (error) => {
-      cleanup(new UploadError(`File stream error: ${error.message}`, 400));
-    });
-
-    blobStream.on("error", (error) => {
-      cleanup(new UploadError(`Storage stream error: ${error.message}`, 500));
-    });
-
-    file.pipe(blobStream).on("finish", async () => {
-      if (isStreamDestroyed) return;
-
-      try {
-        await finalizeUpload(filename, mimeType);
-        resolve({ name: filename, url: generateDownloadUrl(filename) });
-      } catch (error) {
-        cleanup(
-          new UploadError(
-            `Failed to process uploaded file: ${(error as Error).message}`,
-            500,
-          ),
-        );
-      }
-    });
-  });
+  if (size < KERNEL_MIN_SIZE || size > KERNEL_MAX_SIZE) {
+    throw new UploadError(
+      `Kernel file size must be between 10MB and 50MB. Current size: ${(size / 1024 / 1024).toFixed(2)}MB`,
+      400,
+    );
+  }
 }
 
 // Express app setup
@@ -317,6 +372,26 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
 nextApp.prepare().then(() => {
+  // Middleware to prevent POST requests to non-API routes
+  // @ts-ignore
+  app.use((req: Request, res: Response, next) => {
+    const isUploadRoute =
+      req.path === "/api/upload" ||
+      req.path === "/api/upload-kernel" ||
+      req.path === "/api/delete" ||
+      req.path === "/api/rename";
+
+    if (req.method === "POST") {
+      // Only allow POST requests to specific API upload routes
+      if (!isUploadRoute) {
+        return res
+          .status(405)
+          .json({ error: "Method not allowed for this route" });
+      }
+    }
+
+    next();
+  });
   // @ts-ignore
   app.post("/api/upload", async (req: Request, res: Response) => {
     try {
@@ -341,7 +416,132 @@ nextApp.prepare().then(() => {
         error instanceof UploadError
           ? error
           : new UploadError((error as Error).message);
-      res.status(uploadError.statusCode).json({ error: uploadError.message });
+      res.status(uploadError.statusCode).json({
+        error: uploadError.message,
+      });
+    }
+  });
+
+  // @ts-ignore
+  app.post("/api/upload-kernel", async (req: Request, res: Response) => {
+    try {
+      // Initialize buffer to store file chunks
+      const chunks: Buffer[] = [];
+      let totalSize = 0;
+
+      // Create busboy instance with size limits
+      const bb = busboy({
+        headers: req.headers,
+        limits: {
+          fileSize: KERNEL_MAX_SIZE,
+          files: 1, // Only allow one file
+        },
+      });
+
+      return new Promise((resolve, reject) => {
+        bb.on("file", async (fieldname, file, info) => {
+          const { filename, mimeType } = info;
+
+          // Collect file chunks
+          file.on("data", (chunk) => {
+            chunks.push(chunk);
+            totalSize += chunk.length;
+
+            // Check size limit during upload
+            if (totalSize > KERNEL_MAX_SIZE) {
+              file.destroy(new Error("File too large"));
+            }
+          });
+
+          file.on("limit", () => {
+            reject(new UploadError("File size limit exceeded", 400));
+          });
+
+          file.on("end", async () => {
+            try {
+              // Combine chunks and validate file
+              const fileBuffer = Buffer.concat(chunks);
+
+              // Validate file size
+              validateKernelFile(filename, mimeType, fileBuffer.length);
+
+              // Verify it's actually a ZIP file
+              const isValidZip = await validateZipFile(fileBuffer);
+              if (!isValidZip) {
+                throw new UploadError("Invalid ZIP file format", 400);
+              }
+
+              // Calculate checksum
+              const checksum = calculateChecksum(fileBuffer);
+
+              // Upload to cloud storage
+              const blobStream = cloudStorage.createWriteStream(filename);
+
+              const uploadPromise = new Promise(
+                (resolveUpload, rejectUpload) => {
+                  blobStream.on("finish", async () => {
+                    try {
+                      await finalizeUpload(filename, mimeType);
+
+                      const response: KernelUploadResponse = {
+                        message: "Kernel uploaded successfully",
+                        kernel: {
+                          name: filename,
+                          url: generateDownloadUrl(filename),
+                          size: fileBuffer.length,
+                          checksum,
+                        },
+                      };
+
+                      resolveUpload(response);
+                    } catch (error) {
+                      rejectUpload(error);
+                    }
+                  });
+
+                  blobStream.on("error", (error) => {
+                    rejectUpload(
+                      new UploadError(`Upload failed: ${error.message}`, 500),
+                    );
+                  });
+
+                  // Write the buffer to cloud storage
+                  blobStream.end(fileBuffer);
+                },
+              );
+
+              const result = await uploadPromise;
+              resolve(result);
+            } catch (error) {
+              reject(error);
+            }
+          });
+        });
+
+        bb.on("error", (error: Error) => {
+          reject(new UploadError(`Upload error: ${error.message}`, 400));
+        });
+
+        // Handle case when no file is uploaded
+        bb.on("finish", () => {
+          if (totalSize === 0) {
+            reject(new UploadError("No file uploaded", 400));
+          }
+        });
+
+        req.pipe(bb);
+      })
+        .then((result) => res.json(result))
+        .catch((error: Error | UploadError) => {
+          const statusCode =
+            error instanceof UploadError ? error.statusCode : 500;
+          res.status(statusCode).json({ error: error.message });
+        });
+    } catch (error: Error | unknown) {
+      const statusCode = error instanceof UploadError ? error.statusCode : 500;
+      res.status(statusCode).json({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
@@ -355,7 +555,6 @@ nextApp.prepare().then(() => {
       );
       let script = await fs.readFile(scriptPath, "utf8");
 
-      // Replace the placeholder with actual server URL
       const serverUrl = BASE_URL;
       script = script.replace("__SERVER_URL__", serverUrl);
 
@@ -378,13 +577,19 @@ nextApp.prepare().then(() => {
 
 async function handleMultipartUpload(req: Request): Promise<UploadedFile[]> {
   return new Promise((resolve, reject) => {
-    const bb = busboy({ headers: req.headers });
+    const bb = busboy({
+      headers: req.headers,
+      limits: {
+        fileSize: MAX_FILE_SIZE,
+        files: 10, // Set appropriate limit for maximum number of files
+      },
+    });
     const uploadPromises: Promise<UploadedFile>[] = [];
     let hasError = false;
 
     bb.on("file", (fieldname, file, info) => {
       if (hasError) {
-        file.resume(); // Skip processing if we already have an error
+        file.resume();
         return;
       }
 
@@ -402,7 +607,7 @@ async function handleMultipartUpload(req: Request): Promise<UploadedFile[]> {
           uploadPromises.push(uploadPromise);
         } catch (err) {
           hasError = true;
-          file.resume(); // Discard the file
+          file.resume();
           reject(
             err instanceof UploadError
               ? err
@@ -415,7 +620,7 @@ async function handleMultipartUpload(req: Request): Promise<UploadedFile[]> {
     });
 
     bb.on("finish", () => {
-      if (hasError) return; // Skip if we already have an error
+      if (hasError) return;
 
       if (uploadPromises.length === 0) {
         reject(new UploadError("No valid files were uploaded", 400));
