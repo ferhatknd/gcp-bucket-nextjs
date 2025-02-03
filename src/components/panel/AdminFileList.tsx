@@ -272,9 +272,9 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
                     "transition-all duration-300",
                   )}
                 >
-                  <div className="flex flex-col gap-2 md:gap-3 lg:gap-4">
-                    <div className="flex flex-col gap-2 w-full">
-                      <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="flex flex-col justify-between h-full gap-2 md:gap-3 lg:gap-4">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-start gap-2 sm:gap-3">
                         <motion.div
                           whileHover={{ scale: 1.05 }}
                           className="p-1.5 sm:p-2 bg-primary/5 rounded-lg shrink-0"
@@ -282,9 +282,10 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
                           <FileIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 text-primary" />
                         </motion.div>
 
-                        <div className="min-w-0 flex-1 pt-3">
+                        <div className="min-w-0 flex-1">
                           <Link
                             href={`/files/${encodeURIComponent(file.name)}`}
+                            className="block"
                           >
                             <h3 className="font-medium text-xs sm:text-sm md:text-base hover:text-primary transition-colors duration-300 break-all">
                               {file.name}
@@ -292,7 +293,9 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
                           </Link>
                         </div>
                       </div>
+                    </div>
 
+                    <div className="flex flex-col w-full gap-2">
                       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <span className="inline-flex items-center text-xs sm:text-xs md:text-sm text-muted-foreground whitespace-nowrap">
                           <FileStatsIcon className="w-3 h-3 xs:w-3 xs:h-3 sm:w-3 sm:h-3 md:w-4 md:h-4 mr-1 xs:mr-1 sm:mr-1.5 shrink-0" />
@@ -303,27 +306,27 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
                           {formatDate(file.updatedAt)}
                         </span>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col xs:flex-row gap-1.5 sm:gap-2">
-                      <Button
-                        onClick={() => handleRename(file.name)}
-                        variant="outline"
-                        size="default"
-                        className="transition-all duration-300 flex-1 text-[10px] xs:text-[11px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6 hover:border-primary/50"
-                      >
-                        <RenameIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
-                        Rename
-                      </Button>
-                      <Button
-                        onClick={() => handleDelete(file.name)}
-                        variant="destructive"
-                        size="default"
-                        className="transition-all duration-300 flex-1 text-[10px] xs:text-[11px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6"
-                      >
-                        <TrashIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
-                        Delete
-                      </Button>
+                      <div className="flex flex-col xs:flex-row gap-1.5 sm:gap-2">
+                        <Button
+                          onClick={() => handleRename(file.name)}
+                          variant="outline"
+                          size="default"
+                          className="transition-all duration-300 flex-1 text-[10px] xs:text-[11px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6 hover:border-primary/50"
+                        >
+                          <RenameIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+                          Rename
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(file.name)}
+                          variant="destructive"
+                          size="default"
+                          className="transition-all duration-300 flex-1 text-[10px] xs:text-[11px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6"
+                        >
+                          <TrashIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
