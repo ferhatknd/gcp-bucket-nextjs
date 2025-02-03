@@ -664,6 +664,16 @@ const AdminIcon = createIcon(
   </>,
 );
 
+const KernelIcon = createIcon(
+  <>
+    <path d="M21 4v16a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h14a2 2 0 012 2z" />
+    <path d="M9 12h6" />
+    <path d="M12 9v6" />
+    <path d="M7 3v18" />
+    <path d="M17 3v18" />
+  </>,
+);
+
 export {
   CloudIcon,
   CopyIcon,
@@ -726,4 +736,5 @@ export {
   AlertCircleIcon,
   FileSearchIcon,
   AdminIcon,
+  KernelIcon,
 };
