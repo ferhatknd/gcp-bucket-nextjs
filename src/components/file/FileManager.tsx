@@ -105,10 +105,9 @@ export function FileManager() {
   );
 
   return (
-    <section className="relative space-y-8">
+    <section className="relative space-y-4 md:space-y-8">
       <div className="absolute inset-0 bg-background pointer-events-none rounded-2xl" />
 
-      {/* Upload Files Container */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -117,26 +116,25 @@ export function FileManager() {
         <FileUploader onUploadCompleteAction={handleUploadComplete} />
       </motion.div>
 
-      {/* Download Files Container */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="relative"
       >
-        <div className="relative rounded-2xl border border-primary/10 overflow-hidden bg-card p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="relative rounded-2xl border border-primary/10 overflow-hidden bg-card p-4 md:p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4 mb-4 md:mb-6">
             <motion.h2
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
+              className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
             >
               Download Files
             </motion.h2>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center space-x-2"
+              className="flex flex-col sm:flex-row items-start sm:items-center gap-2"
             >
               <StatsCard
                 icon={FileStatsIcon}
@@ -158,7 +156,7 @@ export function FileManager() {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/2 rounded-2xl blur-sm" />
             <div className="relative bg-card rounded-2xl border border-primary/10 shadow-xl overflow-hidden">
-              <div className="p-6 space-y-6">
+              <div className="p-4 md:p-6 space-y-4 md:space-y-6">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key="search"
@@ -173,7 +171,6 @@ export function FileManager() {
                   </motion.div>
                 </AnimatePresence>
 
-                {/* Rest of the content remains the same */}
                 <AnimatePresence mode="wait">
                   {loading ? (
                     <motion.div

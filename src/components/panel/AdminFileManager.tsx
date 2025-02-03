@@ -35,12 +35,13 @@ export default function AdminFileManager() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-10 lg:py-12"
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8 lg:px-10 py-8 sm:py-10 md:py-12 lg:py-16"
     >
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/2 rounded-lg sm:rounded-xl md:rounded-2xl" />
-        <Card className="relative bg-card/50 border border-primary/10 rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl">
-          <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/2 rounded-lg sm:rounded-xl md:rounded-2xl blur-sm" />
+        <Card className="relative bg-card/60 backdrop-blur-sm border border-primary/20 rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-primary/30">
+          <CardContent className="p-4 sm:p-6 md:p-8 lg:p-10">
             <AdminFileList
               files={files.map((file) => ({
                 name: file.name,
@@ -56,16 +57,16 @@ export default function AdminFileManager() {
           </CardContent>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-primary/5 px-3 sm:px-4 md:px-5 lg:px-6 py-2 sm:py-3 md:py-4 border-t border-primary/10"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="bg-primary/10 backdrop-blur-sm px-4 sm:px-6 md:px-8 lg:px-10 py-3 sm:py-4 md:py-5 border-t border-primary/20"
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-              <span className="text-xs sm:text-sm font-medium">
+              <span className="text-sm sm:text-base font-medium text-foreground/80 hover:text-foreground transition-colors">
                 Total Files: {totalFiles}
               </span>
-              <span className="text-xs sm:text-sm font-medium">
+              <span className="text-sm sm:text-base font-medium text-foreground/80 hover:text-foreground transition-colors">
                 Total Size: {formatFileSize(totalSize)}
               </span>
             </div>

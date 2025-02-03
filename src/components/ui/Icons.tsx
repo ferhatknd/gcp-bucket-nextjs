@@ -1,5 +1,6 @@
 import React from "react";
-import { getFileType, FileType } from "@/types/filetypes";
+import { getFileType } from "@/types/filetypes";
+import { motion } from "framer-motion";
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   size?: number;
@@ -274,27 +275,48 @@ export const SortIcon: React.FC<SortIconProps> = ({
     switch (type) {
       case "name":
         return (
-          <>
+          <motion.g
+            animate={{ rotate: order === "asc" ? 0 : 180 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 20,
+            }}
+          >
             <path d="M3 7h10" />
             <path d="M3 11h7" />
             <path d="M3 15h4" />
             <path d="M17 7v10" />
             <path d={order === "asc" ? "m14 14 3 3 3-3" : "m14 10 3-3 3 3"} />
-          </>
+          </motion.g>
         );
       case "date":
         return (
-          <>
+          <motion.g
+            animate={{ rotate: order === "asc" ? 0 : 180 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 20,
+            }}
+          >
             <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
             <path d={order === "asc" ? "m9 14 3 3 3-3" : "m9 16 3-3 3 3"} />
-          </>
+          </motion.g>
         );
       case "size":
         return (
-          <>
+          <motion.g
+            animate={{ rotate: order === "asc" ? 0 : 180 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 20,
+            }}
+          >
             {order === "asc" ? (
               <>
                 <rect x="4" y="14" width="6" height="6" />
@@ -306,20 +328,27 @@ export const SortIcon: React.FC<SortIconProps> = ({
                 <rect x="14" y="14" width="6" height="6" />
               </>
             )}
-          </>
+          </motion.g>
         );
       default:
         return (
-          <>
+          <motion.g
+            animate={{ rotate: order === "asc" ? 0 : 180 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 20,
+            }}
+          >
             <path d="M12 20V4" />
             <path d={order === "asc" ? "m5 11 7-7 7 7" : "m5 13 7 7 7-7"} />
-          </>
+          </motion.g>
         );
     }
   };
 
   return (
-    <svg
+    <motion.svg
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
@@ -332,7 +361,7 @@ export const SortIcon: React.FC<SortIconProps> = ({
       className={className}
     >
       {renderIcon()}
-    </svg>
+    </motion.svg>
   );
 };
 

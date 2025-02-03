@@ -25,39 +25,36 @@ export function DirectLinkUploader({
       return;
     }
 
-    setIsUploading(true);
-    setUploadProgress(0);
+    const simulateProgress = () => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) return prev;
+        const increment = Math.random() * 15;
+        return Math.min(prev + increment, 90);
+      });
+    };
 
-    const progressInterval = setInterval(() => {
-      setUploadProgress((prev) => Math.min(prev + Math.random() * 30, 90));
-    }, 500);
+    const progressInterval = setInterval(simulateProgress, 1000);
 
     try {
       const response = await fetch("/api/upload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ directLink }),
       });
 
-      const data = await response.json();
+      clearInterval(progressInterval);
 
       if (!response.ok) {
-        throw new Error(data.error || "Upload failed");
+        throw new Error(await response.text());
       }
 
-      if (data.file && data.file.name && data.file.url) {
-        setUploadProgress(100);
-        onUploadSuccessAction(data.file);
-        setDirectLink("");
-      } else {
-        throw new Error("Invalid response format from server");
-      }
+      setUploadProgress(100);
+      const data = await response.json();
+      onUploadSuccessAction(data.file);
     } catch (error) {
+      clearInterval(progressInterval);
       onUploadErrorAction((error as Error).message);
     } finally {
-      clearInterval(progressInterval);
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
@@ -66,27 +63,18 @@ export function DirectLinkUploader({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      className="w-full max-w-2xl mx-auto"
-    >
-      <div className="space-y-6">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="space-y-2"
-        >
-          <h3 className="text-xl font-semibold text-center bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+    <motion.div className="w-full max-w-2xl mx-auto px-4 sm:px-6">
+      <div className="space-y-4 sm:space-y-6">
+        <motion.div className="space-y-2 sm:space-y-3">
+          <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-center">
             Upload from Direct Link
           </h3>
-          <p className="text-sm text-center text-muted-foreground">
+          <p className="text-xs sm:text-sm md:text-base text-center text-muted-foreground">
             Upload files from direct download links (500MB - 3GB)
           </p>
         </motion.div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <div className="relative">
             <Input
               type="text"
@@ -94,6 +82,7 @@ export function DirectLinkUploader({
               value={directLink}
               onChange={(e) => setDirectLink(e.target.value)}
               className={cn(
+                "h-10 sm:h-12 text-sm sm:text-base",
                 "h-12 pl-4 pr-12",
                 "bg-background",
                 "border-2 border-primary/20",
@@ -116,6 +105,7 @@ export function DirectLinkUploader({
               onClick={handleUpload}
               disabled={isUploading || !directLink}
               className={cn(
+                "h-10 sm:h-12 text-sm sm:text-base",
                 "w-full h-12 rounded-xl font-medium",
                 "bg-gradient-to-r from-primary to-primary/80",
                 "hover:from-primary/90 hover:to-primary/70",

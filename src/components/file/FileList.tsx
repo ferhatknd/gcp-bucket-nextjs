@@ -47,9 +47,9 @@ export function FileList({
   loading = false,
 }: FileListProps) {
   const { sortState, updateSort } = useFileManagement();
-  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>(
-    {},
-  );
+  const [copiedStates, setCopiedStates] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [downloadingStates, setDownloadingStates] = useState<{
     [key: string]: boolean;
   }>({});
@@ -98,7 +98,10 @@ export function FileList({
       onDownloadAction(filename);
       setDownloadingStates((prev) => ({ ...prev, [filename]: true }));
       setTimeout(() => {
-        setDownloadingStates((prev) => ({ ...prev, [filename]: false }));
+        setDownloadingStates((prev) => ({
+          ...prev,
+          [filename]: false,
+        }));
       }, 2000);
     },
     [onDownloadAction],
@@ -179,46 +182,40 @@ export function FileList({
             </div>
           </div>
 
-          <div className="flex flex-row flex-nowrap justify-start gap-2 mb-4 md:mb-6">
+          <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
             {(["name", "date", "size"] as const).map((type) => (
-              <motion.div
+              <Button
                 key={type}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: type === "name" ? 0.1 : type === "date" ? 0.2 : 0.3,
-                }}
-                className="flex-1 md:flex-none"
+                onClick={() => updateSort(type)}
+                variant={sortState.by === type ? "default" : "outline"}
+                size="sm"
+                className={cn(
+                  "transition-all duration-300 min-w-[80px] flex-1 sm:flex-none",
+                  "text-xs md:text-sm px-2 md:px-4",
+                  sortState.by === type
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "hover:border-primary/50",
+                )}
               >
-                <Button
-                  onClick={() => updateSort(type)}
-                  variant={sortState.by === type ? "default" : "outline"}
-                  size="sm"
+                <SortIcon
                   className={cn(
-                    "transition-all duration-300 w-full text-xs md:text-sm min-w-0 md:min-w-[100px]",
-                    sortState.by === type
-                      ? "bg-primary/10 text-primary hover:bg-primary/20"
-                      : "hover:border-primary/50",
+                    "w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 transition-transform duration-300",
+                    sortState.by === type &&
+                      sortState.orders[type] === "desc" &&
+                      "rotate-180",
                   )}
-                >
-                  <SortIcon
-                    className={cn(
-                      "w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2 transition-transform duration-300",
-                      sortState.by === type &&
-                        sortState.orders[type] === "desc" &&
-                        "rotate-180",
-                    )}
-                    type={type}
-                    order={sortState.orders[type]}
-                  />
+                  type={type}
+                  order={sortState.orders[type]}
+                />
+                <span className="whitespace-nowrap">
                   {type.charAt(0).toUpperCase() + type.slice(1)}
-                </Button>
-              </motion.div>
+                </span>
+              </Button>
             ))}
           </div>
 
           <AnimatePresence mode="popLayout">
-            <div className="grid gap-2 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {sortedFiles.map((file, index) => {
                 const isCopied = copiedStates[file.name];
                 const isDownloading = downloadingStates[file.name];
@@ -231,115 +228,147 @@ export function FileList({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: index * 0.05,
+                    }}
                     className={cn(
-                      "group relative bg-card rounded-lg p-2 md:p-5",
+                      "group relative bg-card rounded-lg p-2 md:p-4 lg:p-5",
                       "border border-primary/10 hover:border-primary/30",
                       "shadow-md hover:shadow-lg",
                       "transition-all duration-300",
-                      "overflow-hidden",
                     )}
                   >
-                    <div className="flex flex-col gap-2 md:gap-4">
-                      <div className="flex flex-row items-start gap-2 md:gap-4 w-full">
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          className="p-1.5 md:p-2 bg-primary/5 rounded-lg transition-colors duration-300 group-hover:bg-primary/10 shrink-0"
-                        >
-                          <FileTypeIcon className="w-5 h-5 md:w-10 md:h-10 text-primary" />
-                        </motion.div>
-
-                        <div className="flex-grow min-w-0 space-y-0.5 md:space-y-1 max-w-full">
-                          <Link
-                            href={`/files/${encodeURIComponent(file.name)}`}
-                            className="block"
+                    <div className="flex flex-col gap-2 md:gap-3 lg:gap-4">
+                      <div className="flex flex-col gap-2 w-full">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <motion.div
+                            whileHover={{
+                              scale: 1.05,
+                            }}
+                            className="p-1.5 sm:p-2 bg-primary/5 rounded-lg shrink-0"
                           >
-                            <h3 className="font-medium text-xs md:text-lg hover:text-primary transition-colors duration-300 truncate pr-2">
-                              {file.name}
-                            </h3>
-                          </Link>
+                            <FileTypeIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 text-primary" />
+                          </motion.div>
 
-                          <div className="flex flex-wrap items-center gap-x-2 md:gap-x-4 gap-y-1 text-[10px] md:text-sm text-muted-foreground">
-                            <span className="flex items-center whitespace-nowrap">
-                              <FileStatsIcon className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                              {formatFileSize(file.size)}
-                            </span>
-                            <span className="flex items-center whitespace-nowrap">
-                              <ClockIcon className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                              {formatDate(file.updatedAt)}
-                            </span>
+                          <div className="min-w-0 flex-1 pt-3">
+                            <Link
+                              href={`/files/${encodeURIComponent(file.name)}`}
+                              className="block"
+                            >
+                              <h3 className="font-medium text-xs sm:text-sm md:text-base hover:text-primary transition-colors duration-300 break-all">
+                                {file.name}
+                              </h3>
+                            </Link>
                           </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <span className="inline-flex items-center text-xs sm:text-xs md:text-sm text-muted-foreground whitespace-nowrap">
+                            <FileStatsIcon className="w-3 h-3 xs:w-3 xs:h-3 sm:w-3 sm:h-3 md:w-4 md:h-4 mr-1 xs:mr-1 sm:mr-1.5 shrink-0" />
+                            {formatFileSize(file.size)}
+                          </span>
+                          <span className="inline-flex items-center text-xs sm:text-xs md:text-sm text-muted-foreground whitespace-nowrap">
+                            <ClockIcon className="w-3 h-3 xs:w-3 xs:h-3 sm:w-3 sm:h-3 md:w-4 md:h-4 mr-1 xs:mr-1 sm:mr-1.5 shrink-0" />
+                            {formatDate(file.updatedAt)}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row gap-2 w-full">
-                        <Button
-                          onClick={() => handleCopy(file.name)}
-                          variant={isCopied ? "default" : "outline"}
-                          size="default"
-                          className={cn(
-                            "transition-all duration-300 flex-1 text-[10px] md:text-base h-7 md:h-10 px-2 md:px-6",
-                            isCopied
-                              ? "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                              : "hover:border-primary/50",
-                          )}
-                          disabled={isCopied}
-                        >
-                          <AnimatePresence mode="wait">
-                            <motion.div
-                              key={isCopied ? "check" : "copy"}
-                              initial={{ scale: 0.5, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0.5, opacity: 0 }}
-                              className="flex items-center"
-                            >
-                              {isCopied ? (
-                                <>
-                                  <CheckIcon className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                                  Copied!
-                                </>
-                              ) : (
-                                <>
-                                  <CopyIcon className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                                  Copy Link
-                                </>
-                              )}
-                            </motion.div>
-                          </AnimatePresence>
-                        </Button>
+                      <div className="flex flex-col w-full">
+                        <div className="flex flex-col xs:flex-row gap-1.5 sm:gap-2">
+                          <Button
+                            onClick={() => handleCopy(file.name)}
+                            variant={isCopied ? "default" : "outline"}
+                            size="default"
+                            className={cn(
+                              "transition-all duration-300 flex-1 text-2xs xs:text-[10px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6",
+                              isCopied
+                                ? "bg-green-500/10 text-green-500 hover:bg-green-500/20"
+                                : "hover:border-primary/50",
+                            )}
+                            disabled={isCopied}
+                          >
+                            <AnimatePresence mode="wait">
+                              <motion.div
+                                key={isCopied ? "check" : "copy"}
+                                initial={{
+                                  scale: 0.5,
+                                  opacity: 0,
+                                }}
+                                animate={{
+                                  scale: 1,
+                                  opacity: 1,
+                                }}
+                                exit={{
+                                  scale: 0.5,
+                                  opacity: 0,
+                                }}
+                                className="flex items-center justify-center w-full"
+                              >
+                                {isCopied ? (
+                                  <>
+                                    <CheckIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+                                    <span className="whitespace-nowrap">
+                                      Copied!
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CopyIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+                                    <span className="whitespace-nowrap">
+                                      Copy Link
+                                    </span>
+                                  </>
+                                )}
+                              </motion.div>
+                            </AnimatePresence>
+                          </Button>
 
-                        <Button
-                          onClick={() => handleDownload(file.name)}
-                          variant="outline"
-                          size="default"
-                          className={cn(
-                            "transition-all duration-300 hover:border-primary/50 flex-1 text-[10px] md:text-base h-7 md:h-10 px-2 md:px-6",
-                            isDownloading && "opacity-50",
-                          )}
-                          disabled={isDownloading}
-                        >
-                          <AnimatePresence mode="wait">
+                          <Button
+                            onClick={() => handleDownload(file.name)}
+                            variant="outline"
+                            size="default"
+                            className={cn(
+                              "transition-all duration-300 hover:border-primary/50 flex-1 text-2xs xs:text-[10px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6",
+                              isDownloading && "opacity-50",
+                            )}
+                            disabled={isDownloading}
+                          >
                             <motion.div
                               key={isDownloading ? "downloading" : "download"}
-                              initial={{ scale: 0.5, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0.5, opacity: 0 }}
-                              className="flex items-center"
+                              initial={{
+                                scale: 0.5,
+                                opacity: 0,
+                              }}
+                              animate={{
+                                scale: 1,
+                                opacity: 1,
+                              }}
+                              exit={{
+                                scale: 0.5,
+                                opacity: 0,
+                              }}
+                              className="flex items-center justify-center w-full"
                             >
                               {isDownloading ? (
                                 <>
-                                  <LoadingIcon className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 animate-spin" />
-                                  Downloading...
+                                  <LoadingIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+                                  <span className="whitespace-nowrap">
+                                    Downloading...
+                                  </span>
                                 </>
                               ) : (
                                 <>
-                                  <DownloadIcon className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                                  Download
+                                  <DownloadIcon className="w-2.5 h-2.5 xs:w-3 xs:h-3 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+                                  <span className="whitespace-nowrap">
+                                    Download
+                                  </span>
                                 </>
                               )}
                             </motion.div>
-                          </AnimatePresence>
-                        </Button>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
