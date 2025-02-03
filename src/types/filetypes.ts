@@ -1,109 +1,119 @@
 const textExtensions = [
-  ".txt",
-  ".md",
-  ".js",
-  ".ts",
-  ".html",
-  ".css",
-  ".json",
-  ".xml",
-  ".yaml",
-  ".yml",
-  ".ini",
-  ".cfg",
-  ".conf",
-  ".log",
-  ".csv",
-  ".tsv",
-  ".rtf",
-  ".py",
-  ".java",
-  ".c",
-  ".cpp",
-  ".h",
-  ".hpp",
-  ".cs",
-  ".rb",
-  ".php",
-  ".sql",
-  ".sh",
-  ".bat",
+    ".txt",
+    ".md",
+    ".js",
+    ".ts",
+    ".html",
+    ".css",
+    ".json",
+    ".xml",
+    ".yaml",
+    ".yml",
+    ".ini",
+    ".cfg",
+    ".conf",
+    ".log",
+    ".csv",
+    ".tsv",
+    ".rtf",
+    ".py",
+    ".java",
+    ".c",
+    ".cpp",
+    ".h",
+    ".hpp",
+    ".cs",
+    ".rb",
+    ".php",
+    ".sql",
+    ".sh",
+    ".bat",
 ] as const;
 
 export const imageExtensions = [
-  ".jpg",
-  ".jpeg",
-  ".png",
-  ".gif",
-  ".bmp",
-  ".webp",
-  ".svg",
-  ".tiff",
-  ".tif",
-  ".ico",
-  ".psd",
-  ".ai",
-  ".eps",
-  ".raw",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".bmp",
+    ".webp",
+    ".svg",
+    ".tiff",
+    ".tif",
+    ".ico",
+    ".psd",
+    ".ai",
+    ".eps",
+    ".raw",
 ] as const;
 
 export const audioExtensions = [
-  ".mp3",
-  ".wav",
-  ".ogg",
-  ".flac",
-  ".aac",
-  ".wma",
-  ".m4a",
-  ".aiff",
-  ".midi",
+    ".mp3",
+    ".wav",
+    ".ogg",
+    ".flac",
+    ".aac",
+    ".wma",
+    ".m4a",
+    ".aiff",
+    ".midi",
 ] as const;
 
 export const videoExtensions = [
-  ".mp4",
-  ".webm",
-  ".ogg",
-  ".avi",
-  ".mov",
-  ".wmv",
-  ".flv",
-  ".mkv",
-  ".m4v",
-  ".3gp",
-  ".mpeg",
-  ".mpg",
+    ".mp4",
+    ".webm",
+    ".ogg",
+    ".avi",
+    ".mov",
+    ".wmv",
+    ".flv",
+    ".mkv",
+    ".m4v",
+    ".3gp",
+    ".mpeg",
+    ".mpg",
 ] as const;
 
 export const compressedExtensions = [
-  ".zip",
-  ".rar",
-  ".7z",
-  ".tar",
-  ".gz",
-  ".bz2",
-  ".xz",
-  ".iso",
-  ".tgz",
-  ".tbz2",
-  ".lz",
-  ".lzma",
-  ".zst",
+    ".zip",
+    ".rar",
+    ".7z",
+    ".tar",
+    ".gz",
+    ".bz2",
+    ".xz",
+    ".iso",
+    ".tgz",
+    ".tbz2",
+    ".lz",
+    ".lzma",
+    ".zst",
 ] as const;
 
 export type FileType =
-  | "text"
-  | "image"
-  | "audio"
-  | "video"
-  | "compressed"
-  | "other";
+    | "text"
+    | "image"
+    | "audio"
+    | "video"
+    | "compressed"
+    | "other";
 
 export function getFileType(extension: string): FileType {
-  const lowerExt = extension.toLowerCase();
-  if (textExtensions.includes(lowerExt as any)) return "text";
-  if (imageExtensions.includes(lowerExt as any)) return "image";
-  if (audioExtensions.includes(lowerExt as any)) return "audio";
-  if (videoExtensions.includes(lowerExt as any)) return "video";
-  if (compressedExtensions.includes(lowerExt as any)) return "compressed";
-  return "other";
+    const lowerExt = extension.toLowerCase();
+    if (textExtensions.includes(lowerExt as any)) return "text";
+    if (imageExtensions.includes(lowerExt as any)) return "image";
+    if (audioExtensions.includes(lowerExt as any)) return "audio";
+    if (videoExtensions.includes(lowerExt as any)) return "video";
+    if (compressedExtensions.includes(lowerExt as any)) return "compressed";
+    return "other";
 }
+
+export enum FileCategory {
+    KERNEL = "KERNEL",
+    ROM = "ROM",
+}
+
+export const getFileCategory = (fileSize: number): FileCategory => {
+    const SIZE_THRESHOLD = 512 * 1024 * 1024; // 512MB in bytes
+    return fileSize < SIZE_THRESHOLD ? FileCategory.KERNEL : FileCategory.ROM;
+};
