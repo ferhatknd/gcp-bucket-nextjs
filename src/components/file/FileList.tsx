@@ -90,7 +90,7 @@ export function FileList({
         setCopiedStates((prev) => ({ ...prev, [filename]: false }));
       }, 2000);
     },
-    [onCopyAction],
+    [onCopyAction]
   );
 
   const handleDownload = useCallback(
@@ -104,7 +104,7 @@ export function FileList({
         }));
       }, 2000);
     },
-    [onDownloadAction],
+    [onDownloadAction]
   );
 
   if (loading) return <FilesSkeleton />;
@@ -156,13 +156,13 @@ export function FileList({
                 disabled={isRefreshing}
                 className={cn(
                   "group transition-all duration-300 hover:border-primary/50 w-full sm:w-auto text-xs md:text-sm",
-                  isRefreshing && "opacity-50 cursor-not-allowed",
+                  isRefreshing && "opacity-50 cursor-not-allowed"
                 )}
               >
                 <RefreshIcon
                   className={cn(
                     "w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2 transition-transform duration-500",
-                    isRefreshing ? "animate-spin" : "group-hover:rotate-180",
+                    isRefreshing ? "animate-spin" : "group-hover:rotate-180"
                   )}
                 />
                 {isRefreshing ? "Refreshing..." : "Refresh"}
@@ -194,7 +194,7 @@ export function FileList({
                   "text-xs md:text-sm px-2 md:px-4",
                   sortState.by === type
                     ? "bg-primary/10 text-primary hover:bg-primary/20"
-                    : "hover:border-primary/50",
+                    : "hover:border-primary/50"
                 )}
               >
                 <SortIcon
@@ -202,7 +202,7 @@ export function FileList({
                     "w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 transition-transform duration-300",
                     sortState.by === type &&
                       sortState.orders[type] === "desc" &&
-                      "rotate-180",
+                      "rotate-180"
                   )}
                   type={type}
                   order={sortState.orders[type]}
@@ -236,7 +236,7 @@ export function FileList({
                       "group relative bg-card rounded-lg p-2 md:p-4 lg:p-5",
                       "border border-primary/10 hover:border-primary/30",
                       "shadow-md hover:shadow-lg",
-                      "transition-all duration-300",
+                      "transition-all duration-300"
                     )}
                   >
                     <div className="flex flex-col gap-2 md:gap-3 lg:gap-4">
@@ -282,10 +282,10 @@ export function FileList({
                             variant={isCopied ? "default" : "outline"}
                             size="default"
                             className={cn(
-                              "transition-all duration-300 flex-1 text-2xs xs:text-[10px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6",
+                              "transition-all duration-300 flex-1 text-[8px] xs:text-[10px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6",
                               isCopied
                                 ? "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                                : "hover:border-primary/50",
+                                : "hover:border-primary/50"
                             )}
                             disabled={isCopied}
                           >
@@ -330,8 +330,8 @@ export function FileList({
                             variant="outline"
                             size="default"
                             className={cn(
-                              "transition-all duration-300 hover:border-primary/50 flex-1 text-2xs xs:text-[10px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6",
-                              isDownloading && "opacity-50",
+                              "transition-all duration-300 hover:border-primary/50 flex-1 text-[8px] xs:text-[10px] sm:text-sm md:text-base h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 px-1.5 xs:px-2 sm:px-4 md:px-6",
+                              isDownloading && "opacity-50"
                             )}
                             disabled={isDownloading}
                           >

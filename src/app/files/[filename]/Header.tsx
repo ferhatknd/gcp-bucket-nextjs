@@ -13,6 +13,7 @@ import {
   ArrowLeftIcon,
 } from "@/components/ui/Icons";
 import { cn } from "@/lib/utils";
+import ThemeSwitch from "@/components/ui/ThemeSwitch";
 
 const Header = ({
   handleCopy,
@@ -67,7 +68,7 @@ const Header = ({
           "relative group transition-all duration-300",
           "hover:bg-primary/10 active:scale-95",
           "rounded-full p-2 sm:p-2.5",
-          "bg-background/50 backdrop-blur-sm",
+          "bg-background/50 backdrop-blur-sm"
         )}
       >
         <div className="absolute inset-0 rounded-full bg-primary/5 scale-0 group-hover:scale-100 transition-transform duration-300" />
@@ -87,7 +88,7 @@ const Header = ({
         "bg-gradient-to-b from-background/80 to-background/20",
         isScrolled
           ? "backdrop-blur-sm backdrop-saturate-125"
-          : "backdrop-blur-[2px] backdrop-saturate-75",
+          : "backdrop-blur-[2px] backdrop-saturate-75"
       )}
     >
       <div className="container mx-auto px-4">
@@ -121,6 +122,7 @@ const Header = ({
               label="Download"
               tooltipContent="Download File"
             />
+            <ThemeSwitch />
           </div>
 
           <div className="md:hidden">
@@ -191,7 +193,7 @@ const Header = ({
                       "transition-all duration-300",
                       "hover:bg-primary/10 active:scale-98",
                       "rounded-lg px-4 py-3",
-                      "bg-background/50 backdrop-blur-[2px]",
+                      "bg-background/50 backdrop-blur-[2px]"
                     )}
                   >
                     <item.icon className="w-5 h-5" />
@@ -199,6 +201,9 @@ const Header = ({
                   </Button>
                 </motion.div>
               ))}
+              <div className="flex justify-end">
+                <ThemeSwitch />
+              </div>
             </div>
           </motion.div>
         )}

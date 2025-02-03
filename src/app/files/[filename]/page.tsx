@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useFileManagement } from "@/hooks/useFileManagement";
 import { formatFileSize } from "@/lib/utils";
 import Header from "./Header";
-import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import { motion } from "framer-motion";
 import { getFileType } from "@/types/filetypes";
 import {
@@ -53,7 +52,7 @@ export default function FilePage({
     const fetchFileDetails = async () => {
       try {
         const response = await fetch(
-          `/api/files?filename=${encodeURIComponent(fileName)}`,
+          `/api/files?filename=${encodeURIComponent(fileName)}`
         );
         if (!response.ok) throw new Error("Failed to fetch file details");
         const data = await response.json();
@@ -86,9 +85,6 @@ export default function FilePage({
           handleDownload={() => {}}
           copied={false}
         />
-        <div className="fixed top-4 right-4 z-50">
-          <ThemeSwitch />
-        </div>
         <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -117,9 +113,6 @@ export default function FilePage({
           handleDownload={() => {}}
           copied={false}
         />
-        <div className="fixed top-4 right-4 z-50">
-          <ThemeSwitch />
-        </div>
         <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
           <LoadingIndicator loading="file details" />
         </main>
@@ -127,7 +120,9 @@ export default function FilePage({
     );
   }
 
-  const downloadUrl = `${window.location.origin}/api/download?filename=${encodeURIComponent(fileName)}`;
+  const downloadUrl = `${
+    window.location.origin
+  }/api/download?filename=${encodeURIComponent(fileName)}`;
 
   return (
     <motion.div
@@ -140,10 +135,6 @@ export default function FilePage({
         handleDownload={() => handleDownload(fileName)}
         copied={copied}
       />
-
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeSwitch />
-      </div>
 
       <main className="flex-grow container mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {/* File Overview Card */}
@@ -207,14 +198,14 @@ export default function FilePage({
                     <DetailRow
                       label="Last Modified"
                       value={new Date(
-                        fileDetails?.updatedAt || "",
+                        fileDetails?.updatedAt || ""
                       ).toLocaleString()}
                     />
                     {fileDetails?.timeCreated && (
                       <DetailRow
                         label="Created"
                         value={new Date(
-                          fileDetails.timeCreated,
+                          fileDetails.timeCreated
                         ).toLocaleString()}
                       />
                     )}
@@ -258,7 +249,7 @@ export default function FilePage({
                     Download Link
                   </h3>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-primary/5 rounded-lg">
-                    <div className="w-full sm:flex-1 truncate font-mono text-xs sm:text-sm">
+                    <div className="w-full sm:flex-1 break-all font-mono text-xs sm:text-sm">
                       {downloadUrl}
                     </div>
                     <Button
@@ -268,7 +259,7 @@ export default function FilePage({
                         "w-full sm:w-auto transition-all duration-300",
                         copied
                           ? "bg-green-500/10 text-green-500 hover:bg-green-500/20"
-                          : "hover:border-primary/50",
+                          : "hover:border-primary/50"
                       )}
                     >
                       {copied ? "Copied!" : "Copy"}
