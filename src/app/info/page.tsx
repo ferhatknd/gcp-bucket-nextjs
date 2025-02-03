@@ -394,10 +394,8 @@ export default function InfoPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
-      <div className="sticky top-0 z-50 bg-gradient-to-b from-background to-background/80 backdrop-blur-sm shadow-sm pb-4">
-        <Header />
-      </div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80">
+      <Header />
 
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <motion.div
@@ -405,7 +403,6 @@ export default function InfoPage() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8"
         >
-          {/* Enhanced Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
