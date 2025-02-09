@@ -3,8 +3,9 @@ import React, { useEffect, useCallback, useState } from "react";
 import { Pagination } from "@/components/ui/Pagination";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { useFileManagement } from "@/hooks/useFileManagement";
-import { toast } from "react-hot-toast";
+import { toast, Toast } from "react-hot-toast";
 import { FileUploader } from "@/components/file/FileUploader";
+import { KernelUploader, KernelUploadResponse } from "./KernelUploader";
 import {
   FileStatsIcon,
   DatabaseIcon,
@@ -58,6 +59,57 @@ export function FileManager() {
     await fetchFiles();
     setIsRefreshing(false);
   }, [fetchFiles]);
+
+  const handleKernelUpload = useCallback(
+    (response: KernelUploadResponse) => {
+      handleRefresh();
+      toast.custom((t: Toast) => (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className={cn(
+            "pointer-events-auto flex w-full max-w-[90vw] sm:max-w-xl rounded-lg",
+            "bg-card border border-primary/10",
+            "shadow-lg",
+            t.visible ? "animate-in" : "animate-out",
+          )}
+        >
+          <div className="flex-1 p-4 min-w-0">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <CheckIcon className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">Kernel Upload Successful</p>
+                <p className="mt-1 text-sm text-muted-foreground truncate">
+                  {response.kernel.name}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Checksum: {response.kernel.checksum}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex-shrink-0">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className={cn(
+                "flex items-center justify-center w-12 h-full",
+                "hover:bg-primary/5 transition-colors duration-200",
+                "border-l border-primary/10",
+              )}
+            >
+              <XIcon className="h-5 w-5 text-muted-foreground" />
+            </button>
+          </div>
+        </motion.div>
+      ));
+    },
+    [handleRefresh],
+  );
 
   const handleUploadComplete = useCallback(
     (file: { name: string; url: string }) => {
@@ -123,6 +175,14 @@ export function FileManager() {
         className="relative rounded-2xl border border-primary/10 overflow-hidden"
       >
         <FileUploader onUploadCompleteAction={handleUploadComplete} />
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative rounded-2xl border border-primary/10 overflow-hidden"
+      >
+        <KernelUploader onUploadComplete={handleKernelUpload} />
       </motion.div>
 
       <motion.div
