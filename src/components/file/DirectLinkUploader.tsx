@@ -19,9 +19,17 @@ export function DirectLinkUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const handleError = (error: string) => {
+    onUploadErrorAction(error);
+    // Clear error after 3 seconds
+    setTimeout(() => {
+      onUploadErrorAction("");
+    }, 3000);
+  };
+
   async function handleUpload() {
     if (!directLink) {
-      onUploadErrorAction("Please enter a direct download link");
+      handleError("Please enter a direct download link");
       return;
     }
 
@@ -29,7 +37,7 @@ export function DirectLinkUploader({
       // Validate URL format
       new URL(directLink);
     } catch {
-      onUploadErrorAction("Please enter a valid URL");
+      handleError("Please enter a valid URL");
       return;
     }
 
@@ -60,7 +68,7 @@ export function DirectLinkUploader({
       onUploadSuccessAction(data.file);
     } catch (error) {
       clearInterval(progressInterval);
-      onUploadErrorAction((error as Error).message);
+      handleError((error as Error).message);
     } finally {
       setTimeout(() => {
         setIsUploading(false);

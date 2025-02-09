@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { FileIcon, UploadIcon } from "@/components/ui/Icons";
@@ -23,6 +23,14 @@ export function KernelUploader({ onUploadComplete }: KernelUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  const handleError = useCallback((errorMessage: string) => {
+    setError(errorMessage);
+    // Clear error after 3 seconds
+    setTimeout(() => {
+      setError(null);
+    }, 3000);
+  }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -58,7 +66,7 @@ export function KernelUploader({ onUploadComplete }: KernelUploaderProps) {
     const maxSize = 51 * 1024 * 1024; // 51MB
 
     if (file.size < minSize || file.size > maxSize) {
-      setError(
+      handleError(
         `Kernel file size must be between 10MB and 50MB. Current size: ${(
           file.size /
           (1024 * 1024)
@@ -69,7 +77,7 @@ export function KernelUploader({ onUploadComplete }: KernelUploaderProps) {
 
     // Validate file type
     if (!file.name.toLowerCase().endsWith(".zip")) {
-      setError("Only .zip files are allowed");
+      handleError("Only .zip files are allowed");
       return;
     }
 
@@ -93,7 +101,7 @@ export function KernelUploader({ onUploadComplete }: KernelUploaderProps) {
 
       onUploadComplete(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      handleError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
