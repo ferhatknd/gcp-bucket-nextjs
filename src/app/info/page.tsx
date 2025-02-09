@@ -47,21 +47,13 @@ export default function InfoPage() {
                 <h4 className="font-medium text-lg">Web Interface</h4>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <Card className="bg-primary/5 p-4">
-                    <h5 className="font-medium mb-2">Direct Upload</h5>
-                    <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                      <li>Visit the home page</li>
-                      <li>Click &quot;Choose Files&quot; or drag & drop</li>
-                      <li>Select your files</li>
-                      <li>Wait for upload completion</li>
-                    </ol>
-                  </Card>
-                  <Card className="bg-primary/5 p-4">
                     <h5 className="font-medium mb-2">Link Upload</h5>
                     <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                      <li>Navigate to the upload section</li>
+                      <li>Go to the main page</li>
+                      <li>Navigate to the direct link upload section</li>
                       <li>Paste your direct download link</li>
                       <li>Click &quot;Upload from Link&quot;</li>
-                      <li>Wait for the download and upload</li>
+                      <li>Wait for the server to upload the file</li>
                     </ol>
                   </Card>
                 </div>
@@ -190,10 +182,11 @@ export default function InfoPage() {
                   <Card className="bg-primary/5 p-4">
                     <h5 className="font-medium mb-2">Upload Steps</h5>
                     <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
+                      <li>Go to the main page</li>
                       <li>Go to Kernel Upload section</li>
                       <li>Select or drag your kernel ZIP file</li>
-                      <li>Wait for validation</li>
-                      <li>Get download URL and checksum</li>
+                      <li>Wait for validation and upload</li>
+                      <li>And boom, done</li>
                     </ol>
                   </Card>
                   <Card className="bg-primary/5 p-4">
@@ -337,57 +330,84 @@ export default function InfoPage() {
       ],
     },
     {
-      title: "File Management",
+      title: "API Endpoints",
       icon: FileManagerIcon,
       content: [
         {
-          subtitle: "Browsing Files",
-          description: "Navigate and manage uploaded files",
-          steps: [
-            "Access the file list from the home page or navigation menu",
-            "Use the search bar to find specific files",
-            "Sort files by name, date, or size",
-            "Click on file names to view detailed information",
-          ],
+          subtitle: "Available Endpoints",
+          description: "REST API endpoints for file operations",
+          content: (
+            <div className="grid grid-cols-1 gap-4">
+              <Card className="bg-primary/5 p-4">
+                <h5 className="font-medium mb-2">File Upload Endpoints</h5>
+                <div className="space-y-4 text-sm text-muted-foreground">
+                  <div>
+                    <code className="bg-card/50 px-2 py-1 rounded">
+                      /api/upload
+                    </code>
+                    <ul className="mt-2 ml-4 space-y-1">
+                      <li>• POST: Upload files directly or via URL</li>
+                      <li>• Supports multipart/form-data and JSON</li>
+                      <li>• Returns file URL and name</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <code className="bg-card/50 px-2 py-1 rounded">
+                      /api/upload-kernel
+                    </code>
+                    <ul className="mt-2 ml-4 space-y-1">
+                      <li>• POST: Upload kernel ZIP files</li>
+                      <li>• Supports multipart/form-data</li>
+                      <li>• Returns URL, checksum, and size</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <code className="bg-card/50 px-2 py-1 rounded">
+                      /api/download-script
+                    </code>
+                    <ul className="mt-2 ml-4 space-y-1">
+                      <li>• GET: Download upload script</li>
+                      <li>• Returns shell script for CLI uploads</li>
+                    </ul>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          ),
         },
         {
-          subtitle: "File Operations",
-          description: "Common file management tasks",
-          features: [
-            "Generate download links",
-            "Copy direct download URLs",
-            "View file metadata and details",
-            "Track file sizes and upload dates",
-          ],
-        },
-      ],
-    },
-    {
-      title: "Admin Features",
-      icon: AdminIcon,
-      content: [
-        {
-          subtitle: "Admin Panel Access",
-          description: "Manage files with administrative privileges",
-          steps: [
-            "Navigate to the Admin Panel from the navigation menu",
-            "Enter your admin API key to authenticate",
-            "Access additional file management features",
-          ],
-        },
-        {
-          subtitle: "Admin Operations",
-          description: "Administrative file management tasks",
-          features: [
-            "Delete files from storage",
-            "Rename existing files",
-            "View detailed file statistics",
-            "Monitor storage usage",
-          ],
-          notes: [
-            "Admin API key required for all administrative operations",
-            "Changes are permanent and cannot be undone",
-          ],
+          subtitle: "API Usage",
+          description: "Examples of using the API endpoints",
+          content: (
+            <div className="space-y-4">
+              <Card className="bg-primary/5 p-4">
+                <h5 className="font-medium mb-2">Upload Examples</h5>
+                <div className="space-y-3 font-mono text-xs">
+                  <div className="bg-card/50 p-2 rounded-lg">
+                    # Upload file using curl
+                    <br />
+                    curl -X POST -F &quot;files=@file.zip&quot;
+                    http://localhost:3000/api/upload
+                  </div>
+                  <div className="bg-card/50 p-2 rounded-lg">
+                    # Upload from URL
+                    <br />
+                    {'curl -X POST -H "Content-Type: application/json" \\'}
+                    <br />
+                    {'-d \'{"directLink":"https://example.com/file.zip"}\' \\'}
+                    <br />
+                    {"http://localhost:3000/api/upload"}
+                  </div>
+                  <div className="bg-card/50 p-2 rounded-lg">
+                    # Upload kernel file
+                    <br />
+                    curl -X POST -F &quot;file=@kernel.zip&quot;
+                    http://localhost:3000/api/upload-kernel
+                  </div>
+                </div>
+              </Card>
+            </div>
+          ),
         },
       ],
     },
