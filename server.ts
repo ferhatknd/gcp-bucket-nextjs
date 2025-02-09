@@ -59,60 +59,6 @@ class UploadError extends Error {
 }
 
 // Utility functions
-const validateUploadedFile = async (
-  buffer: Buffer,
-  filename: string,
-  mimeType: string,
-  options: {
-    minSize?: number;
-    maxSize?: number;
-    allowedTypes?: Set<string>;
-    forbiddenTypes?: Set<string>;
-  },
-) => {
-  const {
-    minSize = MIN_FILE_SIZE,
-    maxSize = MAX_FILE_SIZE,
-    allowedTypes,
-    forbiddenTypes = FORBIDDEN_MIME_TYPES,
-  } = options;
-
-  // Size validation
-  if (buffer.length < minSize) {
-    throw new UploadError(
-      `File ${filename} is too small. Minimum size is ${
-        minSize / 1024 / 1024
-      }MB.`,
-      400,
-    );
-  }
-  if (buffer.length > maxSize) {
-    throw new UploadError(
-      `File ${filename} is too large. Maximum size is ${
-        maxSize / 1024 / 1024
-      }MB.`,
-      400,
-    );
-  }
-
-  // Type validation
-  if (allowedTypes && !allowedTypes.has(mimeType)) {
-    throw new UploadError(`File type ${mimeType} is not allowed.`, 400);
-  }
-
-  const isForbiddenType = Array.from(forbiddenTypes).some((type) =>
-    mimeType.startsWith(type),
-  );
-  if (isForbiddenType) {
-    throw new UploadError(
-      `File type not allowed: ${mimeType}. Forbidden file types are not permitted.`,
-      400,
-    );
-  }
-
-  return true;
-};
-
 // Unified file processing function
 const processFileUpload = async (
   file: NodeJS.ReadableStream,
@@ -241,17 +187,68 @@ async function uploadFromDirectLink(directLink: string): Promise<UploadedFile> {
       throw new UploadError("Response body is null", 400);
     }
 
-    const { url } = await processFileUpload(
-      // @ts-ignore
-      Readable.from(response.body),
-      filename,
-      contentType,
-    );
+    // Create a write stream to cloud storage
+    const blobStream = cloudStorage.createWriteStream(filename);
+    const hash = crypto.createHash("sha256");
+    let size = 0;
 
-    return {
-      name: filename,
-      url,
-    };
+    // Convert ReadableStream to Node.js Readable
+    // @ts-ignore
+    const nodeReadable = Readable.fromWeb(response.body);
+
+    return new Promise((resolve, reject) => {
+      // Pipe the response stream directly to cloud storage
+      nodeReadable.on("data", (chunk: Buffer) => {
+        size += chunk.length;
+        hash.update(chunk);
+
+        if (size > MAX_FILE_SIZE) {
+          nodeReadable.destroy();
+          blobStream.destroy();
+          reject(
+            new UploadError(
+              `File size exceeds maximum limit of ${
+                MAX_FILE_SIZE / (1024 * 1024)
+              }MB`,
+              400,
+            ),
+          );
+        }
+      });
+
+      nodeReadable.pipe(blobStream);
+
+      blobStream.on("finish", async () => {
+        try {
+          if (size < MIN_FILE_SIZE) {
+            await cloudStorage.deleteFile(filename);
+            throw new UploadError(
+              `File size is below minimum requirement of ${
+                MIN_FILE_SIZE / (1024 * 1024)
+              }MB`,
+              400,
+            );
+          }
+
+          await finalizeUpload(filename, contentType);
+          resolve({
+            name: filename,
+            url: generateDownloadUrl(filename),
+          });
+        } catch (error) {
+          reject(error);
+        }
+      });
+
+      blobStream.on("error", (error) => {
+        nodeReadable.on("error", (error: Error) => {
+          blobStream.destroy();
+          reject(new UploadError(`Download failed: ${error.message}`, 500));
+        });
+        blobStream.destroy();
+        reject(new UploadError(`Download failed: ${error.message}`, 500));
+      });
+    });
   } catch (error) {
     if (error instanceof UploadError) throw error;
     throw new UploadError(

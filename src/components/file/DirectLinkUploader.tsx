@@ -19,21 +19,27 @@ export function DirectLinkUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleUpload = async () => {
+  async function handleUpload() {
     if (!directLink) {
       onUploadErrorAction("Please enter a direct download link");
       return;
     }
 
-    const simulateProgress = () => {
+    try {
+      // Validate URL format
+      new URL(directLink);
+    } catch {
+      onUploadErrorAction("Please enter a valid URL");
+      return;
+    }
+
+    setIsUploading(true);
+    const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 90) return prev;
-        const increment = Math.random() * 15;
-        return Math.min(prev + increment, 90);
+        return Math.min(prev + Math.random() * 15, 90);
       });
-    };
-
-    const progressInterval = setInterval(simulateProgress, 1000);
+    }, 1000);
 
     try {
       const response = await fetch("/api/upload", {
@@ -45,7 +51,8 @@ export function DirectLinkUploader({
       clearInterval(progressInterval);
 
       if (!response.ok) {
-        throw new Error(await response.text());
+        const errorText = await response.text();
+        throw new Error(errorText);
       }
 
       setUploadProgress(100);
@@ -60,7 +67,7 @@ export function DirectLinkUploader({
         setUploadProgress(0);
       }, 500);
     }
-  };
+  }
 
   return (
     <motion.div className="w-full max-w-2xl mx-auto px-4 sm:px-6">

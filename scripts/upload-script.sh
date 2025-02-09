@@ -179,14 +179,17 @@ upload_file() {
 
     local start_time=$(date +%s.%N)
     local response
-    response=$(curl -s -X POST \
+    # Use curl's built-in file reading instead of loading into memory
+    response=$(curl -X POST \
         -H "Content-Type: multipart/form-data" \
         -F "files=@$file" \
+        --limit-rate 50M \
         --progress-bar \
         "$SERVER_URL/api/upload")
     local end_time=$(date +%s.%N)
     local duration=$(echo "$end_time - $start_time" | bc)
 
+    # Calculate speed based on file size and duration
     local file_size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
     local avg_speed=$(echo "$file_size / $duration" | bc)
 
