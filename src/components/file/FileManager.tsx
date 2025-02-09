@@ -68,33 +68,40 @@ export function FileManager() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           className={cn(
-            "pointer-events-auto flex w-full max-w-md rounded-lg",
+            "pointer-events-auto flex w-full max-w-[90vw] sm:max-w-xl rounded-lg",
             "bg-card border border-primary/10",
             "shadow-lg",
             t.visible ? "animate-in" : "animate-out",
           )}
         >
-          <div className="w-0 flex-1 p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 pt-0.5">
+          <div className="flex-1 p-4 min-w-0">
+            {" "}
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <CheckIcon className="h-6 w-6 text-primary" />
                 </div>
               </div>
-              <div className="ml-3 flex-1">
+              <div className="min-w-0 flex-1">
+                {" "}
                 <p className="text-sm font-medium">Upload Successful</p>
                 <p className="mt-1 text-sm text-muted-foreground truncate">
                   {file.name}
                 </p>
+                <div className="hidden group-hover:block absolute left-0 right-0 mt-1 p-2 bg-popover rounded-md shadow-lg">
+                  <p className="text-sm break-all">{file.name}</p>
+                </div>
               </div>
             </div>
           </div>
-          <div className="flex border-l border-primary/10">
+          <div className="flex-shrink-0">
+            {" "}
             <button
               onClick={() => toast.dismiss(t.id)}
               className={cn(
-                "flex items-center justify-center px-4 hover:bg-primary/5",
-                "transition-colors duration-200",
+                "flex items-center justify-center w-12 h-full",
+                "hover:bg-primary/5 transition-colors duration-200",
+                "border-l border-primary/10",
               )}
             >
               <XIcon className="h-5 w-5 text-muted-foreground" />
