@@ -412,9 +412,11 @@ nextApp.prepare().then(() => {
       const uploadedFiles = await handleMultipartUpload(req);
 
       await sendTelegramMessage(
-        `✅ Multiple files uploaded successfully\n` +
-          `📁 Number of files: ${uploadedFiles.length}\n` +
-          uploadedFiles.map((file) => `- ${file.name}`).join("\n"),
+        `✅ File Upload Success\n${uploadedFiles
+          .map(
+            (file) => `📁 Filename: ${file.name}\n` + `🔗 URL: ${file.url}\n`,
+          )
+          .join("\n")}`,
       );
 
       res.json({
