@@ -9,6 +9,7 @@ import crypto from "crypto";
 import { fileTypeFromBuffer } from "file-type";
 import dotenv from "dotenv";
 import { Readable } from "stream";
+import { sendTelegramMessage } from "./src/lib/telegram";
 
 dotenv.config({ path: "./.env.local " });
 
@@ -394,6 +395,14 @@ nextApp.prepare().then(() => {
         if (!directLink) throw new UploadError("Direct link is required", 400);
 
         const uploadedFile = await uploadFromDirectLink(directLink);
+
+        // Send Telegram notification
+        await sendTelegramMessage(
+          `✅ File uploaded successfully from direct link\n` +
+            `📁 Filename: ${uploadedFile.name}\n` +
+            `🔗 URL: ${uploadedFile.url}`,
+        );
+
         return res.json({
           message: "File uploaded successfully from direct link",
           file: uploadedFile,
@@ -401,6 +410,13 @@ nextApp.prepare().then(() => {
       }
 
       const uploadedFiles = await handleMultipartUpload(req);
+
+      await sendTelegramMessage(
+        `✅ Multiple files uploaded successfully\n` +
+          `📁 Number of files: ${uploadedFiles.length}\n` +
+          uploadedFiles.map((file) => `- ${file.name}`).join("\n"),
+      );
+
       res.json({
         message: "Files uploaded successfully",
         files: uploadedFiles,
@@ -410,6 +426,11 @@ nextApp.prepare().then(() => {
         error instanceof UploadError
           ? error
           : new UploadError((error as Error).message);
+
+      await sendTelegramMessage(
+        `❌ Upload Error\n` + `⚠️ Error: ${uploadError.message}`,
+      );
+
       res.status(uploadError.statusCode).json({
         error: uploadError.message,
       });
@@ -504,9 +525,20 @@ nextApp.prepare().then(() => {
                 },
               );
 
-              const result = await uploadPromise;
+              const result = (await uploadPromise) as KernelUploadResponse;
+              await sendTelegramMessage(
+                `✅ Kernel uploaded successfully\n` +
+                  `📁 Filename: ${result.kernel.name}\n` +
+                  `📊 Size: ${(result.kernel.size / (1024 * 1024)).toFixed(2)}MB\n` +
+                  `🔐 Checksum: ${result.kernel.checksum}\n` +
+                  `🔗 URL: ${result.kernel.url}`,
+              );
               resolve(result);
             } catch (error) {
+              await sendTelegramMessage(
+                `❌ Kernel Upload Error\n` +
+                  `⚠️ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+              );
               reject(error);
             }
           });

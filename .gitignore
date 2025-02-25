@@ -40,3 +40,4 @@ next-env.d.ts
 google-cloud-key.json
 upload.sh
 *.zip
+/Telegram/
