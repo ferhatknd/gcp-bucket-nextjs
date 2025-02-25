@@ -274,20 +274,6 @@ export function FileManager() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                {!loading && initialLoadDone && files.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={setCurrentPage}
-                    />
-                  </motion.div>
-                )}
               </div>
             </div>
           </motion.div>
