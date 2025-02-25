@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { FileList } from "@/components/file/FileList";
@@ -34,6 +34,9 @@ export function FolderView({
   activeFolder,
   setActiveFolder,
 }: FolderViewProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 9; // Define page size
+
   const kernelFiles = files.filter((file) => file.size < 512 * 1024 * 1024);
   const romFiles = files.filter((file) => file.size >= 512 * 1024 * 1024);
 
@@ -53,6 +56,22 @@ export function FolderView({
       files: romFiles,
     },
   ];
+
+  const currentFolder = folders.find((f) => f.category === activeFolder);
+
+  const indexOfLastFile = currentPage * PAGE_SIZE;
+  const indexOfFirstFile = indexOfLastFile - PAGE_SIZE;
+  const currentFiles = currentFolder
+    ? currentFolder.files.slice(indexOfFirstFile, indexOfLastFile)
+    : [];
+  const totalPages = currentFolder
+    ? Math.ceil(currentFolder.files.length / PAGE_SIZE)
+    : 1;
+
+  // Reset pagination when changing folders
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFolder]);
 
   return (
     <div className="space-y-6">
@@ -110,41 +129,34 @@ export function FolderView({
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.3 }}
           >
-            <motion.div
-              className="mb-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <motion.div whileHover={{ x: -5 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="ghost"
-                  onClick={() => setActiveFolder(null)}
-                  className="group gap-2"
-                >
-                  <FolderIcon className="w-5 h-5" />
-                  <span>Back to Folders</span>
-                </Button>
-              </motion.div>
+            <motion.div className="mb-6">
+              <Button
+                variant="ghost"
+                onClick={() => setActiveFolder(null)}
+                className="group gap-2"
+              >
+                <FolderIcon className="w-5 h-5" />
+                <span>Back to Folders</span>
+              </Button>
             </motion.div>
 
             <FileList
-              files={
-                folders.find((f) => f.category === activeFolder)?.files || []
-              }
+              files={currentFiles}
               onCopyAction={onCopyAction}
               onDownloadAction={onDownloadAction}
               onRefreshAction={onRefreshAction}
               loading={loading}
-              totalFiles={
-                folders.find((f) => f.category === activeFolder)?.count || 0
-              }
+              totalFiles={currentFolder?.count || 0}
               totalSize={
-                folders
-                  .find((f) => f.category === activeFolder)
-                  ?.files.reduce((acc, file) => acc + file.size, 0) || 0
+                currentFolder?.files.reduce(
+                  (acc, file) => acc + file.size,
+                  0,
+                ) || 0
               }
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              showPagination={true}
             />
           </motion.div>
         )}

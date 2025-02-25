@@ -54,7 +54,7 @@ export function useFileManagement(disablePagination = false) {
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/files?${disabledPagination ? "all=true" : `page=${currentPage}`}&search=${debouncedSearchTerm}&sort=${sortState.by}&order=${sortState.orders[sortState.by]}`,
+        `/api/files?all=true&search=${debouncedSearchTerm}&sort=${sortState.by}&order=${sortState.orders[sortState.by]}`,
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -70,7 +70,7 @@ export function useFileManagement(disablePagination = false) {
       setLoading(false);
       setInitialLoadDone(true);
     }
-  }, [currentPage, debouncedSearchTerm, sortState, disabledPagination]);
+  }, [debouncedSearchTerm, sortState]);
 
   const updateSort = useCallback((type: SortType) => {
     setSortState((prev) => ({

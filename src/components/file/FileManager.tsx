@@ -261,7 +261,6 @@ export function FileManager() {
                         loading={loading}
                         initialLoadDone={initialLoadDone}
                         files={files.map((file) => ({
-                          ...file,
                           name: file.name,
                           updatedAt: file.updatedAt,
                           size: file.size || 0,

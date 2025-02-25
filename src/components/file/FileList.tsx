@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/Icons";
 import { FilesSkeleton } from "../ui/FilesSkeleton";
 import { cn } from "@/lib/utils";
+import { Pagination } from "@/components/ui/Pagination";
 
 interface File {
   name: string;
@@ -35,6 +36,10 @@ interface FileListProps {
   totalFiles: number;
   totalSize: number;
   loading?: boolean;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  showPagination?: boolean;
 }
 
 export function FileList({
@@ -45,6 +50,10 @@ export function FileList({
   totalFiles,
   totalSize,
   loading = false,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
+  showPagination = false,
 }: FileListProps) {
   const { sortState, updateSort } = useFileManagement();
   const [copiedStates, setCopiedStates] = useState<{
@@ -376,6 +385,14 @@ export function FileList({
           </AnimatePresence>
         </div>
       </motion.div>
+
+      {showPagination && onPageChange && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      )}
     </div>
   );
 }

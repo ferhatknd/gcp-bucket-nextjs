@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { StorageStats } from "@/components/panel/StorageStats";
 
 export default function AdminFileManager() {
-  const { files, totalFiles, totalSize, fetchFiles } = useFileManagement();
+  const { files, totalFiles, totalSize, fetchFiles } = useFileManagement(true);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {

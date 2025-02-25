@@ -1,5 +1,5 @@
 "use client";
-import React, { JSX, useMemo, useState } from "react";
+import React, { JSX, useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/Icons";
 import { cn } from "@/lib/utils";
 import { Label } from "../ui/label";
+import { Pagination } from "../ui/Pagination";
 
 interface File {
   name: string;
@@ -42,7 +43,12 @@ interface FileListProps {
   totalSize: number;
 }
 
-export function AdminFileList({ files, onRefreshAction }: FileListProps) {
+export function AdminFileList({
+  files,
+  onRefreshAction,
+  totalFiles,
+  totalSize,
+}: FileListProps) {
   const { sortState, updateSort } = useFileManagement();
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,6 +58,8 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
   const [fileToRename, setFileToRename] = useState("");
   const [newFileName, setNewFileName] = useState("");
   const [adminApiKey, setAdminApiKey] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 9;
 
   const sortedFiles = useMemo(() => {
     return [...files].sort((a, b) => {
@@ -70,6 +78,15 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
       return 0;
     });
   }, [files, sortState]);
+
+  const indexOfLastFile = currentPage * PAGE_SIZE;
+  const indexOfFirstFile = indexOfLastFile - PAGE_SIZE;
+  const currentFiles = sortedFiles.slice(indexOfFirstFile, indexOfLastFile);
+  const totalPages = Math.ceil(sortedFiles.length / PAGE_SIZE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortState]);
 
   function formatDate(dateString: string) {
     const date = new Date(dateString);
@@ -254,7 +271,7 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
 
           <AnimatePresence mode="popLayout">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedFiles.map((file, index) => (
+              {currentFiles.map((file, index) => (
                 <motion.div
                   key={file.name}
                   layout
@@ -333,6 +350,14 @@ export function AdminFileList({ files, onRefreshAction }: FileListProps) {
               ))}
             </div>
           </AnimatePresence>
+
+          {sortedFiles.length > PAGE_SIZE && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </motion.div>
 
