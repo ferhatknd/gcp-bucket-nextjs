@@ -63,10 +63,14 @@ class UploadError extends Error {
 // Unified file processing function
 const processFileUpload = async (
   file: NodeJS.ReadableStream,
-  filename: string,
+  originalFilename: string,
   mimeType: string,
 ): Promise<{ url: string; checksum: string }> => {
   const hash = crypto.createHash("sha256");
+
+  // Get a unique filename
+  const filename = await getUniqueFilename(originalFilename);
+
   const blobStream = cloudStorage.createWriteStream(filename);
 
   return new Promise((resolve, reject) => {
@@ -122,6 +126,28 @@ const processFileUpload = async (
   });
 };
 
+async function getUniqueFilename(originalFilename: string): Promise<string> {
+  // Check if file exists
+  const exists = await cloudStorage.fileExists(originalFilename);
+  if (!exists) {
+    return originalFilename;
+  }
+
+  // If file exists, generate a unique name
+  const ext = path.extname(originalFilename);
+  const baseName = path.basename(originalFilename, ext);
+  let counter = 1;
+  let newFilename = `${baseName}-${counter}${ext}`;
+
+  // Keep incrementing counter until we find an unused filename
+  while (await cloudStorage.fileExists(newFilename)) {
+    counter++;
+    newFilename = `${baseName}-${counter}${ext}`;
+  }
+
+  return newFilename;
+}
+
 const validateFileType = (mimeType: string, _filename: string): void => {
   const isForbiddenType = Array.from(FORBIDDEN_MIME_TYPES).some((type) =>
     mimeType.startsWith(type),
@@ -171,10 +197,13 @@ async function uploadFromDirectLink(directLink: string): Promise<UploadedFile> {
     const contentType =
       response.headers.get("content-type") || "application/octet-stream";
     const contentLength = response.headers.get("content-length");
-    const filename = extractFilename(
+    let filename = extractFilename(
       directLink,
       response.headers.get("content-disposition"),
     );
+
+    // Get a unique filename
+    filename = await getUniqueFilename(filename);
 
     // Pre-validate content length if available
     if (contentLength) {
@@ -398,7 +427,8 @@ nextApp.prepare().then(() => {
 
         // Send Telegram notification
         await sendTelegramMessage(
-          `✅ File uploaded successfully from direct link\n` +
+          `#upload\n` +
+            `✅ File uploaded successfully from direct link\n` +
             `📁 Filename: ${uploadedFile.name}\n` +
             `🔗 URL: ${uploadedFile.url}`,
         );
@@ -412,11 +442,12 @@ nextApp.prepare().then(() => {
       const uploadedFiles = await handleMultipartUpload(req);
 
       await sendTelegramMessage(
-        `✅ File Upload Success\n${uploadedFiles
-          .map(
-            (file) => `📁 Filename: ${file.name}\n` + `🔗 URL: ${file.url}\n`,
-          )
-          .join("\n")}`,
+        `#upload\n` +
+          `✅ File Upload Success\n${uploadedFiles
+            .map(
+              (file) => `📁 Filename: ${file.name}\n` + `🔗 URL: ${file.url}\n`,
+            )
+            .join("\n")}`,
       );
 
       res.json({
@@ -491,20 +522,22 @@ nextApp.prepare().then(() => {
               // Calculate checksum
               const checksum = calculateChecksum(fileBuffer);
 
+              const uniqueFilename = await getUniqueFilename(filename);
+
               // Upload to cloud storage
-              const blobStream = cloudStorage.createWriteStream(filename);
+              const blobStream = cloudStorage.createWriteStream(uniqueFilename);
 
               const uploadPromise = new Promise(
                 (resolveUpload, rejectUpload) => {
                   blobStream.on("finish", async () => {
                     try {
-                      await finalizeUpload(filename, mimeType);
+                      await finalizeUpload(uniqueFilename, mimeType);
 
                       const response: KernelUploadResponse = {
                         message: "Kernel uploaded successfully",
                         kernel: {
-                          name: filename,
-                          url: generateDownloadUrl(filename),
+                          name: uniqueFilename,
+                          url: generateDownloadUrl(uniqueFilename),
                           size: fileBuffer.length,
                           checksum,
                         },
@@ -529,7 +562,8 @@ nextApp.prepare().then(() => {
 
               const result = (await uploadPromise) as KernelUploadResponse;
               await sendTelegramMessage(
-                `✅ Kernel uploaded successfully\n` +
+                `#upload\n` +
+                  `✅ Kernel uploaded successfully\n` +
                   `📁 Filename: ${result.kernel.name}\n` +
                   `📊 Size: ${(result.kernel.size / (1024 * 1024)).toFixed(2)}MB\n` +
                   `🔐 Checksum: ${result.kernel.checksum}\n` +
