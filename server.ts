@@ -126,16 +126,51 @@ const processFileUpload = async (
   });
 };
 
+function sanitizeFilename(filename: string): string {
+  // Remove spaces and replace with underscores
+  let sanitized = filename.replace(/\s+/g, "_");
+
+  // Remove or replace non-ASCII characters
+  sanitized = sanitized.replace(/[^\x00-\x7F]/g, "");
+
+  // Remove any unusual characters, keeping only alphanumeric, dots, underscores, and hyphens
+  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, "");
+
+  // Replace multiple consecutive underscores with a single underscore
+  sanitized = sanitized.replace(/_+/g, "_");
+
+  // Remove leading and trailing underscores
+  sanitized = sanitized.replace(/^_+|_+$/g, "");
+
+  // If filename becomes empty after sanitization, provide a default name
+  if (!sanitized) {
+    sanitized = "file";
+  }
+
+  // Ensure the extension is preserved
+  const originalExt = path.extname(filename);
+  const sanitizedExt = path.extname(sanitized);
+
+  if (originalExt && !sanitizedExt) {
+    sanitized += originalExt;
+  }
+
+  return sanitized;
+}
+
 async function getUniqueFilename(originalFilename: string): Promise<string> {
+  // First, sanitize the filename
+  let sanitizedFilename = sanitizeFilename(originalFilename);
+
   // Check if file exists
-  const exists = await cloudStorage.fileExists(originalFilename);
+  const exists = await cloudStorage.fileExists(sanitizedFilename);
   if (!exists) {
-    return originalFilename;
+    return sanitizedFilename;
   }
 
   // If file exists, generate a unique name
-  const ext = path.extname(originalFilename);
-  const baseName = path.basename(originalFilename, ext);
+  const ext = path.extname(sanitizedFilename);
+  const baseName = path.basename(sanitizedFilename, ext);
   let counter = 1;
   let newFilename = `${baseName}-${counter}${ext}`;
 
@@ -146,6 +181,24 @@ async function getUniqueFilename(originalFilename: string): Promise<string> {
   }
 
   return newFilename;
+}
+
+function extractFilename(
+  directLink: string,
+  contentDisposition: string | null,
+): string {
+  let filename =
+    new URL(directLink).pathname.split("/").pop() || "downloaded_file";
+
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+    if (filenameMatch) {
+      filename = filenameMatch[1].replace(/^"|"$/g, "");
+    }
+  }
+
+  // Sanitize the filename before returning
+  return sanitizeFilename(filename.replace(/"/g, ""));
 }
 
 const validateFileType = (mimeType: string, _filename: string): void => {
@@ -285,23 +338,6 @@ async function uploadFromDirectLink(directLink: string): Promise<UploadedFile> {
       `Failed to upload from direct link: ${(error as Error).message}`,
     );
   }
-}
-
-function extractFilename(
-  directLink: string,
-  contentDisposition: string | null,
-): string {
-  let filename =
-    new URL(directLink).pathname.split("/").pop() || "downloaded_file";
-
-  if (contentDisposition) {
-    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
-    if (filenameMatch) {
-      filename = filenameMatch[1].replace(/^"|"$/g, "");
-    }
-  }
-
-  return filename.replace(/"/g, "");
 }
 
 async function finalizeUpload(
