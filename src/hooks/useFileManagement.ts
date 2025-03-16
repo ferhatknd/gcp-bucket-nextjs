@@ -70,7 +70,7 @@ export function useFileManagement(disablePagination = false) {
       setLoading(false);
       setInitialLoadDone(true);
     }
-  }, [debouncedSearchTerm, sortState]);
+  }, [debouncedSearchTerm, sortState, disabledPagination]);
 
   const updateSort = useCallback((type: SortType) => {
     setSortState((prev) => ({
