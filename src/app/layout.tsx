@@ -1,5 +1,5 @@
 import React from "react";
-import type Metadata from "next";
+import { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Inter } from "next/font/google";
