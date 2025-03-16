@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import React from "react";
+import type Metadata from "next";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Inter } from "next/font/google";
@@ -54,17 +55,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <body className={inter.className}>
-          <ThemeProvider attribute="class" defaultTheme="dark">
-            <MaintenanceWrapper>
-              {children}
-              <BuyMeCoffeeWidget />
-              <Footer />
-            </MaintenanceWrapper>
-          </ThemeProvider>
-        </body>
-      </head>
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="dark">
+          <MaintenanceWrapper>
+            {children}
+            <BuyMeCoffeeWidget />
+            <Footer />
+          </MaintenanceWrapper>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
