@@ -4,6 +4,7 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import BuyMeCoffeeWidget from "@/components/ui/BuyMeCoffeeWidget";
 import Footer from "@/components/layout/Footer";
+import { MaintenanceWrapper } from "@/components/layout/MaintenanceWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -56,9 +57,11 @@ export default function RootLayout({
       <head>
         <body className={inter.className}>
           <ThemeProvider attribute="class" defaultTheme="dark">
-            {children}
-            <BuyMeCoffeeWidget />
-            <Footer />
+            <MaintenanceWrapper>
+              {children}
+              <BuyMeCoffeeWidget />
+              <Footer />
+            </MaintenanceWrapper>
           </ThemeProvider>
         </body>
       </head>

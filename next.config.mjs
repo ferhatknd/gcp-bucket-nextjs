@@ -4,6 +4,8 @@ const nextConfig = {
     NEXT_PUBLIC_CDN_URL: process.env.CDN_URL,
     NEXT_PUBLIC_WEB_URL: process.env.WEB_URL,
     NEXT_PUBLIC_ADMIN_API_KEY: process.env.ADMIN_API_KEY,
+    NEXT_PUBLIC_MAINTENANCE_MODE: process.env.MAINTENANCE_MODE,
+    NEXT_PUBLIC_REASON_FOR_MAINTENANCE: process.env.REASON_FOR_MAINTENANCE,
   },
   experimental: {
     optimizePackageImports: [

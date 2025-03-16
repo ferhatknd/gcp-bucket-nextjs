@@ -1,8 +1,6 @@
 "use client";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { MaintenanceContent } from "@/components/ui/MaintenanceContent";
-import useMaintenance from "@/hooks/useMaintenance";
 import { Toaster } from "react-hot-toast";
 import { FileManager } from "@/components/file/FileManager";
 import ThemeSwitch from "@/components/ui/ThemeSwitch";
@@ -12,18 +10,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
-  const { isMaintenance } = useMaintenance();
-
-  if (isMaintenance) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-background to-background/80 p-4">
-        <div className="w-full max-w-2xl px-4">
-          <MaintenanceContent />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/80">
       <Toaster
