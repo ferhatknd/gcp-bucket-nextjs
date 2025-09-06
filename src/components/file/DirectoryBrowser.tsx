@@ -36,6 +36,8 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     total: number;
     currentPath: string;
   } | null>(null);
+  const [globalSearchResults, setGlobalSearchResults] = useState<DirectoryItem[]>([]);
+  const [isGlobalSearch, setIsGlobalSearch] = useState(false);
 
   const fetchDirectoryContents = async (path: string) => {
     setLoading(true);
@@ -55,6 +57,8 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
   useEffect(() => {
     fetchDirectoryContents(currentPath);
     setSearchTerm(""); // Clear search when changing directory
+    setIsGlobalSearch(false); // Reset to local search when changing directory
+    setGlobalSearchResults([]); // Clear global search results
   }, [currentPath]);
 
   // Auto-start indexing on first load
@@ -93,10 +97,72 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     setTimeout(pollStatus, 1000); // Start polling after 1 second
   }, []);
 
+  // Global search function
+  const performGlobalSearch = async (query: string) => {
+    if (!query || query.trim() === "") {
+      setIsGlobalSearch(false);
+      setGlobalSearchResults([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      
+      if (response.ok && data.results) {
+        const mappedResults: DirectoryItem[] = data.results.map((result: any) => ({
+          name: result.name,
+          fullPath: result.path + result.name,
+          isDirectory: result.isDirectory,
+          size: result.size,
+          updatedAt: result.updatedAt,
+        }));
+        
+        setGlobalSearchResults(mappedResults);
+        setIsGlobalSearch(true);
+      } else {
+        setGlobalSearchResults([]);
+        setIsGlobalSearch(false);
+      }
+    } catch (error) {
+      console.error('Global search error:', error);
+      setGlobalSearchResults([]);
+      setIsGlobalSearch(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Debounce global search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm.trim() !== "") {
+        performGlobalSearch(searchTerm);
+      } else {
+        setIsGlobalSearch(false);
+        setGlobalSearchResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
   const handleItemClick = (item: DirectoryItem) => {
     if (item.isDirectory) {
       setCurrentPath(item.fullPath);
       setSearchTerm(""); // Clear search when navigating
+      setIsGlobalSearch(false); // Reset to local search
+      setGlobalSearchResults([]); // Clear global search results
+    }
+  };
+
+  const handleGlobalItemClick = (item: DirectoryItem) => {
+    if (item.isDirectory) {
+      setCurrentPath(item.fullPath);
+      setSearchTerm(""); // Clear search when navigating
+      setIsGlobalSearch(false); // Reset to local search
+      setGlobalSearchResults([]); // Clear global search results
     }
   };
 
@@ -111,6 +177,8 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
   const navigateToRoot = () => {
     setCurrentPath("dbf-extracted/");
     setSearchTerm("");
+    setIsGlobalSearch(false);
+    setGlobalSearchResults([]);
   };
 
   const getBreadcrumbs = () => {
@@ -128,9 +196,11 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     return breadcrumbs;
   };
 
-  const filteredItems = allItems.filter(item => 
-    searchTerm === "" || item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = isGlobalSearch 
+    ? globalSearchResults 
+    : allItems.filter(item => 
+        searchTerm === "" || item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
   return (
     <div className="space-y-6">
@@ -198,7 +268,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
           <SearchBar
             searchTerm={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={`Search in ${currentPath}...`}
+            placeholder={isGlobalSearch ? "Global search results..." : `Search in ${currentPath}...`}
           />
         </div>
         {currentPath !== "dbf-extracted/" && (
@@ -231,7 +301,11 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
                 animate={{ opacity: 1 }}
                 className="text-center py-12 text-muted-foreground"
               >
-                {searchTerm ? `No results found for "${searchTerm}"` : "No items in this directory"}
+                {searchTerm && isGlobalSearch 
+                  ? `No global results found for "${searchTerm}"` 
+                  : searchTerm 
+                    ? `No results found for "${searchTerm}"` 
+                    : "No items in this directory"}
               </motion.div>
             ) : (
               filteredItems.map((item, index) => (
@@ -245,7 +319,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
                     "hover:border-primary/30 hover:bg-card/50 transition-all duration-200",
                     item.isDirectory ? "cursor-pointer" : "cursor-default"
                   )}
-                  onClick={() => item.isDirectory && handleItemClick(item)}
+                  onClick={() => item.isDirectory && (isGlobalSearch ? handleGlobalItemClick(item) : handleItemClick(item))}
                 >
                   <div className="flex-shrink-0">
                     {item.isDirectory ? (
@@ -257,6 +331,11 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
                   
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{item.name}</p>
+                    {isGlobalSearch && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        📁 {item.fullPath.replace(item.name, '').replace(/\/$/, '')}
+                      </p>
+                    )}
                     {!item.isDirectory && item.size && (
                       <p className="text-sm text-muted-foreground">
                         {formatFileSize(item.size)}
