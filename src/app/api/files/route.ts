@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cloudStorage } from "@/lib/cloudStorage";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -30,11 +30,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Pagination, search, and sorting functionality
-    const files = await cloudStorage.listFiles();
+    const [files] = await cloudStorage.listFiles();
     const filteredFiles = await Promise.all(
       files
         .filter((file) =>
-          file.name.toLowerCase().includes(search.toLowerCase()),
+          file.name && file.name.toLowerCase().includes(search.toLowerCase()),
         )
         .map(async (file) => {
           const metadata = await cloudStorage.getFileMetadata(file.name);

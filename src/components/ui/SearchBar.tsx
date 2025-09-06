@@ -6,9 +6,10 @@ import { XIcon } from "@/components/ui/Icons";
 interface SearchBarProps {
   searchTerm: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
 }
 
-export function SearchBar({ searchTerm, onChange }: SearchBarProps) {
+export function SearchBar({ searchTerm, onChange, placeholder = "Search files..." }: SearchBarProps) {
   return (
     <div className="relative w-full max-w-2xl mx-auto">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -16,7 +17,7 @@ export function SearchBar({ searchTerm, onChange }: SearchBarProps) {
       </div>
       <input
         type="text"
-        placeholder="Search files..."
+        placeholder={placeholder}
         className={cn(
           "w-full h-12 pl-11 pr-4 rounded-xl",
           "bg-background/50 backdrop-blur-sm",

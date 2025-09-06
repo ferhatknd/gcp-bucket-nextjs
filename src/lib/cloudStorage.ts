@@ -51,11 +51,21 @@ export const cloudStorage = {
     const [metadata] = await bucket.file(filename).getMetadata();
     return metadata;
   },
-  listFiles: async (prefix?: string) => {
-    const [files] = await bucket.getFiles({ prefix, autoPaginate: false });
+  listFiles: async (prefix?: string, useDelimiter?: boolean) => {
+    const options: any = { prefix, autoPaginate: true };
+    if (useDelimiter) {
+      options.delimiter = '/';
+    }
+    return await bucket.getFiles(options);
+  },
+  listDbfExtractedFiles: async () => {
+    const [files] = await bucket.getFiles({ prefix: 'dbf-extracted/', autoPaginate: true });
     return files;
   },
   createReadStream: (filename: string): Readable => {
     return bucket.file(filename).createReadStream();
+  },
+  getPublicUrl: (filename: string): string => {
+    return `https://storage.googleapis.com/${bucket.name}/${filename}`;
   },
 };

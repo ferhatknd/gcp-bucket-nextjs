@@ -111,6 +111,7 @@ export function getFileType(extension: string): FileType {
 export enum FileCategory {
   KERNEL = "KERNEL",
   ROM = "ROM",
+  DBF_EXTRACTED = "DBF_EXTRACTED",
 }
 
 export const getFileCategory = (fileSize: number): FileCategory => {

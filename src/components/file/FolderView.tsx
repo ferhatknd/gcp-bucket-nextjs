@@ -8,11 +8,17 @@ import {
   ArchiveIcon,
   FolderIcon,
   ChevronRightIcon,
+  DatabaseIcon,
 } from "@/components/ui/Icons";
 import { cn } from "@/lib/utils";
 
 interface FolderViewProps {
   files: Array<{
+    name: string;
+    size: number;
+    updatedAt: string;
+  }>;
+  dbfExtractedFiles: Array<{
     name: string;
     size: number;
     updatedAt: string;
@@ -27,6 +33,7 @@ interface FolderViewProps {
 
 export function FolderView({
   files,
+  dbfExtractedFiles,
   onCopyAction,
   onDownloadAction,
   onRefreshAction,
@@ -55,6 +62,13 @@ export function FolderView({
       count: romFiles.length,
       files: romFiles,
     },
+    {
+      category: FileCategory.DBF_EXTRACTED,
+      label: "DBF Extracted Files",
+      icon: DatabaseIcon,
+      count: dbfExtractedFiles.length,
+      files: dbfExtractedFiles,
+    },
   ];
 
   const currentFolder = folders.find((f) => f.category === activeFolder);
@@ -82,7 +96,7 @@ export function FolderView({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 100 }}
             transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
             {folders.map((folder, index) => (
               <motion.div

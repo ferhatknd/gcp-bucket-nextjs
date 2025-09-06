@@ -15,7 +15,7 @@ dotenv.config({ path: "./.env.local " });
 
 // Constants
 const MAX_FILE_SIZE = 3072 * 1024 * 1024; // 3072 MB (3 GB)
-const MIN_FILE_SIZE = 512 * 1024 * 1024; // 512 MB
+const MIN_FILE_SIZE = 10 * 1024; // 10 KB
 const BASE_URL = process.env.WEB_URL || "http://localhost:3000";
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const IS_DEV = process.env.NODE_ENV !== "production";
@@ -27,8 +27,25 @@ const ALLOWED_MIME_TYPES = new Set([
   "application/octet-stream",
   "application/x-zip",
   "multipart/x-zip",
+  // RAR archives
+  "application/x-rar-compressed",
+  "application/vnd.rar",
+  // PDF documents
+  "application/pdf",
+  // Microsoft Word documents
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  // Microsoft Excel documents
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  // Microsoft PowerPoint documents
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 ]);
-const ALLOWED_EXTENSIONS = new Set([".zip"]);
+const ALLOWED_EXTENSIONS = new Set([
+  ".zip", ".rar", ".pdf", 
+  ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"
+]);
 const FORBIDDEN_MIME_TYPES = new Set(["audio/", "video/", "text/"]);
 
 // File upload interface
@@ -65,11 +82,12 @@ const processFileUpload = async (
   file: NodeJS.ReadableStream,
   originalFilename: string,
   mimeType: string,
+  targetPath?: string,
 ): Promise<{ url: string; checksum: string }> => {
   const hash = crypto.createHash("sha256");
 
-  // Get a unique filename
-  const filename = await getUniqueFilename(originalFilename);
+  // Get a unique filename with path
+  const filename = await getUniqueFilename(originalFilename, targetPath);
 
   const blobStream = cloudStorage.createWriteStream(filename);
 
@@ -104,8 +122,8 @@ const processFileUpload = async (
           await cloudStorage.deleteFile(filename);
           throw new UploadError(
             `File size is below minimum requirement of ${
-              MIN_FILE_SIZE / (1024 * 1024)
-            }MB`,
+              MIN_FILE_SIZE / 1024
+            }KB`,
             400,
           );
         }
@@ -158,26 +176,41 @@ function sanitizeFilename(filename: string): string {
   return sanitized;
 }
 
-async function getUniqueFilename(originalFilename: string): Promise<string> {
-  // First, sanitize the filename
-  let sanitizedFilename = sanitizeFilename(originalFilename);
+async function getUniqueFilename(originalFilename: string, targetPath?: string): Promise<string> {
+  // For folder uploads, originalFilename might contain path separators
+  const fileName = path.basename(originalFilename);
+  const relativePath = originalFilename.includes('/') ? path.dirname(originalFilename) : '';
+  
+  // Sanitize the filename part only
+  let sanitizedFilename = sanitizeFilename(fileName);
+  
+  // Combine target path, relative path, and filename
+  let finalPath = '';
+  if (targetPath && targetPath !== "") {
+    finalPath += targetPath.endsWith("/") ? targetPath : targetPath + "/";
+  }
+  if (relativePath) {
+    finalPath += relativePath + "/";
+  }
+  finalPath += sanitizedFilename;
 
   // Check if file exists
-  const exists = await cloudStorage.fileExists(sanitizedFilename);
+  const exists = await cloudStorage.fileExists(finalPath);
   if (!exists) {
-    return sanitizedFilename;
+    return finalPath;
   }
 
   // If file exists, generate a unique name
   const ext = path.extname(sanitizedFilename);
   const baseName = path.basename(sanitizedFilename, ext);
+  const dir = path.dirname(finalPath);
   let counter = 1;
-  let newFilename = `${baseName}-${counter}${ext}`;
+  let newFilename = path.join(dir, `${baseName}-${counter}${ext}`).replace(/\\/g, '/');
 
   // Keep incrementing counter until we find an unused filename
   while (await cloudStorage.fileExists(newFilename)) {
     counter++;
-    newFilename = `${baseName}-${counter}${ext}`;
+    newFilename = path.join(dir, `${baseName}-${counter}${ext}`).replace(/\\/g, '/');
   }
 
   return newFilename;
@@ -217,7 +250,7 @@ const validateFileType = (mimeType: string, _filename: string): void => {
 const validateFileSize = (size: number, filename: string): void => {
   if (size < MIN_FILE_SIZE) {
     throw new UploadError(
-      `File ${filename} is too small. Minimum size is 500 MB.`,
+      `File ${filename} is too small. Minimum size is 10 KB.`,
       400,
     );
   }
@@ -355,10 +388,11 @@ async function handleFileUpload(
   file: NodeJS.ReadableStream,
   filename: string,
   mimeType: string,
+  targetPath?: string,
 ): Promise<UploadedFile> {
   try {
     validateFileType(mimeType, filename);
-    const { url, checksum } = await processFileUpload(file, filename, mimeType);
+    const { url, checksum } = await processFileUpload(file, filename, mimeType, targetPath);
     return { name: filename, url };
   } catch (error) {
     throw error instanceof UploadError
@@ -439,7 +473,8 @@ nextApp.prepare().then(() => {
       req.path === "/api/upload" ||
       req.path === "/api/upload-kernel" ||
       req.path === "/api/delete" ||
-      req.path === "/api/rename";
+      req.path === "/api/rename" ||
+      req.path === "/api/cache/bulk-index";
 
     if (req.method === "POST") {
       // Only allow POST requests to specific API upload routes
@@ -684,6 +719,17 @@ async function handleMultipartUpload(req: Request): Promise<UploadedFile[]> {
     });
     const uploadPromises: Promise<UploadedFile>[] = [];
     let hasError = false;
+    let targetPath = "";
+    const filePaths: string[] = [];
+    let fileIndex = 0;
+
+    bb.on("field", (name, val) => {
+      if (name === "path") {
+        targetPath = val;
+      } else if (name === "filePaths") {
+        filePaths.push(val);
+      }
+    });
 
     bb.on("file", (fieldname, file, info) => {
       if (hasError) {
@@ -694,10 +740,20 @@ async function handleMultipartUpload(req: Request): Promise<UploadedFile[]> {
       if (fieldname === "files" && info.filename) {
         try {
           validateFileType(info.mimeType, info.filename);
+          
+          // Use the corresponding file path if available
+          const relativePath = filePaths[fileIndex] || info.filename;
+          const fullTargetPath = targetPath && relativePath !== info.filename 
+            ? `${targetPath}/${relativePath}` 
+            : targetPath;
+          
+          fileIndex++;
+          
           const uploadPromise = handleFileUpload(
             file,
-            info.filename,
+            relativePath,
             info.mimeType,
+            fullTargetPath.includes('/') ? path.dirname(fullTargetPath) : targetPath,
           ).catch((error) => {
             hasError = true;
             throw error;

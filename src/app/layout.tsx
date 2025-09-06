@@ -3,8 +3,6 @@ import { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Inter } from "next/font/google";
-import BuyMeCoffeeWidget from "@/components/ui/BuyMeCoffeeWidget";
-import Footer from "@/components/layout/Footer";
 import { MaintenanceWrapper } from "@/components/layout/MaintenanceWrapper";
 
 const inter = Inter({
@@ -13,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "EreN's Bucket",
+  title: "Bucket",
   description:
     "Google cloud storage bucket hosting for myself (and maybe fellow developers).",
   icons: [
@@ -59,8 +57,6 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark">
           <MaintenanceWrapper>
             {children}
-            <BuyMeCoffeeWidget />
-            <Footer />
           </MaintenanceWrapper>
         </ThemeProvider>
       </body>
