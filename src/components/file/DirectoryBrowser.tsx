@@ -97,7 +97,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     setTimeout(pollStatus, 1000); // Start polling after 1 second
   }, []);
 
-  // Global search function
+  // Search function for current directory and subdirectories
   const performGlobalSearch = async (query: string) => {
     if (!query || query.trim() === "") {
       setIsGlobalSearch(false);
@@ -107,7 +107,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&currentPath=${encodeURIComponent(currentPath)}`);
       const data = await response.json();
       
       if (response.ok && data.results) {
@@ -134,7 +134,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     }
   };
 
-  // Debounce global search
+  // Always perform search in current directory and subdirectories when there's a search term
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchTerm.trim() !== "") {
@@ -146,7 +146,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  }, [searchTerm, currentPath]); // Add currentPath dependency
 
   const handleItemClick = (item: DirectoryItem) => {
     if (item.isDirectory) {
@@ -268,7 +268,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
           <SearchBar
             searchTerm={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={isGlobalSearch ? "Global search results..." : `Search in ${currentPath}...`}
+            placeholder={isGlobalSearch ? `Search results in ${currentPath} and subdirectories...` : `Search in ${currentPath} and subdirectories...`}
           />
         </div>
         {currentPath !== "dbf-extracted/" && (

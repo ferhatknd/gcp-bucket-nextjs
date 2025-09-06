@@ -4,6 +4,7 @@ import { fileCache } from "@/lib/fileCache";
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get("q");
+  const currentPath = searchParams.get("currentPath") || "dbf-extracted/";
 
   if (!query || query.trim() === "") {
     return NextResponse.json({ results: [] });
@@ -19,9 +20,9 @@ export async function GET(request: NextRequest) {
       updatedAt?: string;
     }> = [];
 
-    // Get all cached paths
+    // Get all cached paths that start with currentPath (current directory and subdirectories)
     const cacheStats = fileCache.getStats();
-    const allPaths = cacheStats.paths;
+    const allPaths = cacheStats.paths.filter(path => path.startsWith(currentPath));
 
     for (const path of allPaths) {
       const items = fileCache.get(path);
