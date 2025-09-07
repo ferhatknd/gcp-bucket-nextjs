@@ -21,7 +21,7 @@ steps:
       - 'managed'
       - '--allow-unauthenticated'
       - '--port'
-      - '3000'
+      - '6060'
       - '--memory'
       - '1Gi'
       - '--cpu'

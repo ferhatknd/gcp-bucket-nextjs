@@ -20,10 +20,10 @@ RUN npm run build
 RUN mkdir -p cache
 
 # Expose port
-EXPOSE 3000
+EXPOSE 6060
 
 # Set environment variable for port
-ENV PORT=3000
+ENV PORT=6060
 
 # Start the server
 CMD ["npm", "run", "start"]

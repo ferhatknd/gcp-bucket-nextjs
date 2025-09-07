@@ -17,7 +17,7 @@ dotenv.config({ path: "./.env.local " });
 const MAX_FILE_SIZE = 3072 * 1024 * 1024; // 3072 MB (3 GB)
 const MIN_FILE_SIZE = 10 * 1024; // 10 KB
 const BASE_URL = process.env.WEB_URL || "http://localhost:3000";
-const PORT = parseInt(process.env.PORT || "3000", 10);
+const PORT = parseInt(process.env.PORT || "6060", 10);
 const IS_DEV = process.env.NODE_ENV !== "production";
 const KERNEL_MIN_SIZE = 9 * 1024 * 1024; // 9 MB
 const KERNEL_MAX_SIZE = 51 * 1024 * 1024; // 51 MB
@@ -466,6 +466,45 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
 nextApp.prepare().then(() => {
+  // Auth middleware for protected routes
+  // @ts-ignore
+  const authMiddleware = (req: Request, res: Response, next) => {
+    const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
+    
+    // Public routes (no auth required)
+    const publicRoutes = [
+      "/api/list",
+      "/api/search", 
+      "/api/download",
+      "/api/cache/stats"
+    ];
+    
+    // Skip auth for public routes
+    if (publicRoutes.some(route => req.path.startsWith(route))) {
+      return next();
+    }
+    
+    // Protected routes require auth
+    const protectedRoutes = [
+      "/api/upload",
+      "/api/upload-kernel", 
+      "/api/delete",
+      "/api/rename",
+      "/api/cache/bulk-index"
+    ];
+    
+    if (protectedRoutes.some(route => req.path.startsWith(route))) {
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.split(" ")[1];
+      
+      if (!authHeader || !authHeader.startsWith("Bearer ") || token !== ADMIN_API_KEY) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+    }
+    
+    next();
+  };
+
   // Middleware to prevent POST requests to non-API routes
   // @ts-ignore
   app.use((req: Request, res: Response, next) => {
@@ -487,6 +526,9 @@ nextApp.prepare().then(() => {
 
     next();
   });
+  
+  // Apply auth middleware
+  app.use(authMiddleware);
   // @ts-ignore
   app.post("/api/upload", async (req: Request, res: Response) => {
     try {
