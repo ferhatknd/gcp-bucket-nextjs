@@ -16,12 +16,12 @@ steps:
       - '--build-arg'
       - 'MAINTENANCE_MODE=false'
       - '-t'
-      - 'europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:$SHORT_SHA'
+      - 'europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:latest'
       - '.'
   
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:$SHORT_SHA']
+    args: ['push', 'europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:latest']
   
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
@@ -32,9 +32,9 @@ steps:
       - 'update'
       - 'gcp-bucket'
       - '--platform=managed'
-      - '--image=europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:$SHORT_SHA'
+      - '--image=europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:latest'
       - '--region=europe-west1'
       - '--quiet'
 
 images:
-  - 'europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:$SHORT_SHA'
+  - 'europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:latest'
