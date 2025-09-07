@@ -254,6 +254,11 @@ class SQLiteCache {
 
   // Clean up expired cache entries
   cleanupExpired(): void {
+    // Skip cleanup when cache duration is Infinity (permanent cache)
+    if (this.CACHE_DURATION === Infinity) {
+      return;
+    }
+    
     const expiredTime = Date.now() - this.CACHE_DURATION;
     
     const transaction = this.db.transaction(() => {
