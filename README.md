@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# GCP Bucket NextJS File Browser
 
-## Getting Started
+A powerful Google Cloud Storage file browser and management system built with Next.js 15. This project is forked and enhanced with advanced search capabilities and Turkish character support.
 
-First, run the development server:
+## 🚀 Features
 
+### Core Functionality
+- **📁 Directory Browser**: Navigate through GCS bucket directory structure with breadcrumb navigation
+- **📤 File Upload**: Upload files and complete folders with preserved directory structure
+- **🔍 Advanced Search**: Google-like search with Fuse.js integration
+- **💾 Persistent Cache**: SQLite-based caching system for fast file browsing
+- **🌐 Turkish Character Support**: Unicode normalization for flexible Turkish character matching
+
+### Search Capabilities
+- **Fuzzy Matching**: Typo-tolerant search that finds closest matches
+- **Partial Word Matching**: "gelis" finds "GELİŞİTİRME"
+- **Bidirectional Turkish Support**: "urun" finds "ÜRÜN" and vice versa  
+- **Multi-word Search**: Google-style search with relevance scoring
+- **Real-time Results**: Instant search across 1000+ files with scoring
+
+### Technical Features
+- **Dual Server Architecture**: Express.js for uploads, Next.js for file operations
+- **Background Indexing**: Automatic bulk indexing of all directories
+- **File Type Support**: ZIP, RAR, PDF, Office documents (10KB - 3GB)
+- **Persistent SQLite Cache**: No TTL - permanent caching for better performance
+- **Cloud Run Ready**: Docker configuration for Google Cloud Run deployment
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS, Radix UI
+- **Backend**: Express.js, Google Cloud Storage SDK
+- **Search**: Fuse.js for advanced fuzzy search
+- **Database**: Better SQLite3 for persistent caching
+- **Animation**: Framer Motion for smooth UI transitions
+- **Deployment**: Docker + Google Cloud Run
+
+## 📋 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- Google Cloud Storage bucket
+- Service account with Storage permissions
+
+### Installation
+
+1. **Clone the repository**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/dogrucevap/gcp-bucket-nextjs.git
+cd gcp-bucket-nextjs
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Install dependencies**
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Environment Setup**
+```bash
+cp .env.example .env.local
+# Edit .env.local with your GCS credentials
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+4. **Start development server**
+```bash
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) to see the file browser.
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Cloud Run Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+1. **Prepare deployment**
+```bash
+# Update PROJECT_ID in deploy.sh
+./deploy.sh
+```
 
-## Deploy on Vercel
+2. **Set environment variables** in Cloud Run console:
+   - `GOOGLE_CLOUD_PROJECT_ID`
+   - `GOOGLE_CLOUD_BUCKET_NAME`
+   - `WEB_URL`
+   - `CDN_URL`
+   - `ADMIN_API_KEY`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+See [README-DEPLOYMENT.md](./README-DEPLOYMENT.md) for detailed deployment guide.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 🔍 Search System
+
+The advanced search system supports:
+
+- **Turkish Character Flexibility**: "gida" finds "GIDA", "gelis" finds "GELİŞ"
+- **Fuzzy Matching**: Handles typos and partial matches
+- **Multi-word Queries**: "Gıda zehirlenmesi analizleri" finds relevant files
+- **Relevance Scoring**: Best matches appear first
+- **Subdirectory Search**: Searches current directory and all subdirectories
+
+## 📁 Project Structure
+
+```
+├── src/
+│   ├── app/              # Next.js App Router
+│   ├── components/       # React components
+│   ├── lib/             # Utilities and services
+│   └── types/           # TypeScript definitions
+├── cache/               # SQLite database storage
+├── server.ts           # Express.js server for uploads
+├── Dockerfile          # Container configuration
+└── cloudbuild.yaml     # Google Cloud Build config
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🙏 Acknowledgments
+
+- Original Next.js template from Vercel
+- Enhanced with advanced search and Turkish language support
+- Built for efficient Google Cloud Storage management
