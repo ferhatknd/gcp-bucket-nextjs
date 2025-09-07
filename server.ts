@@ -11,7 +11,7 @@ import dotenv from "dotenv";
 import { Readable } from "stream";
 import { sendTelegramMessage } from "./src/lib/telegram";
 
-dotenv.config({ path: "./.env.local " });
+dotenv.config({ path: "./.env.local" });
 
 // Constants
 const MAX_FILE_SIZE = 3072 * 1024 * 1024; // 3072 MB (3 GB)

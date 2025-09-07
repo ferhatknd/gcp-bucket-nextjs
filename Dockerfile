@@ -7,14 +7,17 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production --include=optional
+# Install all dependencies (including dev for build)
+RUN npm ci --include=optional
 
 # Copy source code
 COPY . .
 
 # Build Next.js application
 RUN npm run build
+
+# Clean up dev dependencies after build
+RUN npm prune --production
 
 # Create cache directory
 RUN mkdir -p cache
