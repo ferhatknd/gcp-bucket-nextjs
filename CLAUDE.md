@@ -48,7 +48,7 @@ This is a GCS file browser and upload service built with Next.js 15 and Google C
 - **Upload Dialog**: Modal with file/folder selection, progress tracking, and directory structure preservation
 - **Multiple File Upload**: Support for selecting and uploading multiple files simultaneously
 - **Folder Upload**: Complete folder upload with preserved directory structure and subdirectories
-- **Search & Filter**: Real-time search within directory contents
+- **Search & Filter**: Real-time search within directory contents with Turkish character support
 - **Persistent Cache**: SQLite database survives server restarts
 - **Background Indexing**: Automatic indexing of all directories on startup
 
@@ -67,7 +67,7 @@ Required environment variables (see `.env.example`):
 
 1. **Directory Browsing**: Navigate through `dbf-extracted/` directory structure
 2. **Caching**: Directory contents cached in SQLite for fast loading
-3. **Search**: Real-time filtering of files within current directory
+3. **Search**: Real-time filtering of files within current directory and subdirectories with flexible Turkish character matching
 4. **Upload**: Upload files/folders to current directory via dialog
 5. **File Operations**: Copy public URLs, download files directly
 
@@ -87,3 +87,13 @@ Required environment variables (see `.env.example`):
 - **TTL**: 5-minute cache duration with automatic cleanup
 - **Background Indexing**: Indexes all directories on startup
 - **Persistence**: Cache survives server restarts
+
+## Search System
+
+- **Scope**: Searches current directory and all subdirectories
+- **Turkish Character Support**: Flexible matching where "urun" finds "ÜRÜN", "gelis" finds "GELİŞ"
+- **Unicode Normalization**: Handles Turkish characters (İ, Ü, Ş, Ç, Ğ, I, Ö) with proper Unicode decomposition
+- **Partial Word Matching**: "gelis" finds words containing "gelişitirme"
+- **Multiple Terms**: All search words must be found in filename (AND operation)
+- **Bidirectional**: Works both ways (Turkish ↔ ASCII equivalents)
+- **Performance**: Simple substring search with regex fallback for complex cases

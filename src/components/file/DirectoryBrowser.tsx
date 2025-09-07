@@ -310,7 +310,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
             ) : (
               filteredItems.map((item, index) => (
                 <motion.div
-                  key={item.fullPath}
+                  key={`${item.fullPath}-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}

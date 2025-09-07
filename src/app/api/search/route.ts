@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fileCache } from "@/lib/fileCache";
+import Fuse from 'fuse.js';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,119 +12,72 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // More flexible normalize function for Turkish characters
-    const normalizeForSearch = (text: string): string => {
-      return text
-        .toLowerCase()
-        // Very flexible Turkish character replacements
-        .replace(/[ğĞg]/g, '[gğĞ]')
-        .replace(/[üÜu]/g, '[uüÜ]')  
-        .replace(/[şŞs]/g, '[sşŞ]')
-        .replace(/[ıİIi]/g, '[iıİI]')
-        .replace(/[öÖo]/g, '[oöÖ]')
-        .replace(/[çÇc]/g, '[cçÇ]')
-        // Handle spaces and special characters
-        .replace(/[_\-\s]+/g, '.*')
-        .trim();
-    };
+    // Get all files from cache for the current path and subdirectories
+    const cacheStats = fileCache.getStats();
+    const allPaths = cacheStats.paths.filter(path => path.startsWith(currentPath));
 
-    // Simple normalize function for creating regex-safe patterns
-    const simpleNormalize = (text: string): string => {
-      return text
-        .toLowerCase()
-        .replace(/[ğĞ]/g, 'g')
-        .replace(/[üÜ]/g, 'u')  
-        .replace(/[şŞ]/g, 's')
-        .replace(/[ıİI]/g, 'i')
-        .replace(/[öÖ]/g, 'o')
-        .replace(/[çÇ]/g, 'c')
-        .replace(/[_\-\s]+/g, ' ')
-        .trim();
-    };
-
-    // Function to check if text contains word with flexible Turkish character matching
-    const containsFlexible = (text: string, searchWord: string): boolean => {
-      // Normalize text and search word to handle Unicode variations
-      const normalizeText = (str: string): string => {
-        return str
-          .toLowerCase()
-          .normalize('NFD') // Decompose characters
-          .replace(/[\u0300-\u036f]/g, '') // Remove diacritics/combining marks
-          .normalize('NFC'); // Recompose
-      };
-      
-      const normalizedText = normalizeText(text);
-      const normalizedSearch = normalizeText(searchWord);
-      
-      // Simple substring search after normalization - this should work for most cases
-      if (normalizedText.includes(normalizedSearch)) {
-        return true;
-      }
-      
-      // If simple search doesn't work, try flexible character matching
-      const createFlexiblePattern = (word: string): string => {
-        return word
-          .replace(/[gğ]/g, '[gğĞG]')
-          .replace(/[uü]/g, '[uüÜU]')
-          .replace(/[sş]/g, '[sşŞS]')
-          .replace(/[iı]/g, '[iıİI]') // Handle both regular i and Turkish ı
-          .replace(/[oö]/g, '[oöÖO]')
-          .replace(/[cç]/g, '[cçÇC]')
-          // Escape special regex characters
-          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      };
-
-      const flexiblePattern = createFlexiblePattern(normalizedSearch);
-      const regex = new RegExp(flexiblePattern, 'i');
-      return regex.test(normalizedText);
-    };
-
-    // Split search query into individual words - DON'T normalize the search terms
-    const searchWords = query.toLowerCase().split(' ').filter(word => word.length > 0);
-    
-    const results: Array<{
+    // Collect all items into a single array for Fuse.js
+    const allItems: Array<{
       name: string;
       path: string;
       isDirectory: boolean;
       size?: number;
       updatedAt?: string;
+      fullPath: string;
+      searchText: string; // For better search matching
     }> = [];
-
-    // Get all cached paths that start with currentPath (current directory and subdirectories)
-    const cacheStats = fileCache.getStats();
-    const allPaths = cacheStats.paths.filter(path => path.startsWith(currentPath));
 
     for (const path of allPaths) {
       const items = fileCache.get(path);
       if (!items) continue;
 
       for (const item of items) {
-        // Very flexible character matching
-        const itemName = item.name.toLowerCase();
-        
-        const allWordsFound = searchWords.every(word => {
-          // Check if the word can be found with flexible matching
-          return containsFlexible(itemName, word);
-        });
-
-        if (allWordsFound) {
-          results.push({
+        const fullPath = path + item.name;
+        // Check for duplicates
+        const existingItem = allItems.find(i => i.fullPath === fullPath);
+        if (!existingItem) {
+          allItems.push({
             name: item.name,
             path: path,
             isDirectory: item.isDirectory,
             size: item.size,
             updatedAt: item.updatedAt,
+            fullPath: fullPath,
+            searchText: item.name + " " + path, // Combine name and path for better matching
           });
         }
       }
     }
 
-    // Sort results: directories first, then alphabetically
-    results.sort((a, b) => {
-      if (a.isDirectory && !b.isDirectory) return -1;
-      if (!a.isDirectory && b.isDirectory) return 1;
-      return a.name.localeCompare(b.name);
-    });
+    // Configure Fuse.js for powerful fuzzy search
+    const fuseOptions = {
+      keys: [
+        { name: 'name', weight: 0.7 },
+        { name: 'searchText', weight: 0.3 }
+      ],
+      threshold: 0.6, // Lower = more strict, Higher = more fuzzy
+      distance: 100,
+      minMatchCharLength: 1,
+      includeScore: true,
+      ignoreLocation: true, // Ignore position of match
+      findAllMatches: true,
+      useExtendedSearch: true, // Enable advanced search patterns
+    };
+
+    const fuse = new Fuse(allItems, fuseOptions);
+    
+    // Perform the search
+    const searchResults = fuse.search(query);
+    
+    // Convert Fuse results to our format
+    const results = searchResults.map(result => ({
+      name: result.item.name,
+      path: result.item.path,
+      isDirectory: result.item.isDirectory,
+      size: result.item.size,
+      updatedAt: result.item.updatedAt,
+      score: (1 - (result.score || 0)) * 100, // Convert Fuse score to 0-100 scale
+    }));
 
     // Limit results to avoid overwhelming the UI
     const limitedResults = results.slice(0, 100);

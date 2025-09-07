@@ -14,8 +14,7 @@ class FileCache {
   private static instance: FileCache;
 
   private constructor() {
-    // Clean up expired cache entries on startup
-    sqliteCache.cleanupExpired();
+    // No cleanup needed - cache is permanent now
   }
 
   static getInstance(): FileCache {

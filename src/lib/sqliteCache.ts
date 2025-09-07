@@ -20,7 +20,7 @@ interface DirectoryCache {
 class SQLiteCache {
   private static instance: SQLiteCache;
   private db: Database.Database;
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly CACHE_DURATION = Infinity; // No expiration
 
   private constructor() {
     // Create cache directory if it doesn't exist
