@@ -1,18 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
 export const useAuth = () => {
+  // Initialize from sessionStorage if available
   const [adminApiKey, setAdminApiKey] = useState("");
-  // In development mode, start as authenticated
   const isDevelopment = process.env.NODE_ENV === "development";
   const [isAuthenticated, setIsAuthenticated] = useState(isDevelopment);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize auth state from sessionStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedApiKey = sessionStorage.getItem('adminApiKey');
+      const savedAuthState = sessionStorage.getItem('isAuthenticated');
+      
+      if (savedApiKey && savedAuthState === 'true') {
+        setAdminApiKey(savedApiKey);
+        setIsAuthenticated(true);
+      }
+    }
+  }, []);
+
+  // Save to sessionStorage when auth state changes
+  const setAuthenticatedWithStorage = (authenticated: boolean) => {
+    setIsAuthenticated(authenticated);
+    if (typeof window !== 'undefined') {
+      if (authenticated) {
+        sessionStorage.setItem('isAuthenticated', 'true');
+        sessionStorage.setItem('adminApiKey', adminApiKey);
+      } else {
+        sessionStorage.removeItem('isAuthenticated');
+        sessionStorage.removeItem('adminApiKey');
+      }
+    }
+  };
+
+  const setAdminApiKeyWithStorage = (key: string) => {
+    setAdminApiKey(key);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('adminApiKey', key);
+    }
+  };
+
   const authenticate = async () => {
     // Skip authentication in development mode
     if (isDevelopment) {
-      setIsAuthenticated(true);
+      setAuthenticatedWithStorage(true);
       toast.success("Development mode - Authentication bypassed");
       return;
     }
@@ -32,7 +66,7 @@ export const useAuth = () => {
         throw new Error("Invalid API key");
       }
 
-      setIsAuthenticated(true);
+      setAuthenticatedWithStorage(true);
       toast.success("Authentication successful");
     } catch (err) {
       console.error("Authentication error:", err);
@@ -47,18 +81,28 @@ export const useAuth = () => {
         );
         toast.error("Authentication failed");
       }
-      setIsAuthenticated(false);
+      setAuthenticatedWithStorage(false);
     } finally {
       setIsAuthenticating(false);
     }
   };
 
+  const logout = () => {
+    setAuthenticatedWithStorage(false);
+    setAdminApiKey("");
+    if (typeof window !== 'undefined') {
+      sessionStorage.clear();
+    }
+    toast.success("Logged out successfully");
+  };
+
   return {
     adminApiKey,
-    setAdminApiKey,
+    setAdminApiKey: setAdminApiKeyWithStorage,
     isAuthenticated,
     isAuthenticating,
     error,
     authenticate,
+    logout,
   };
 };

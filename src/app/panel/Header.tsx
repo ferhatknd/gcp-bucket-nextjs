@@ -7,9 +7,11 @@ import ThemeSwitch from "@/components/ui/ThemeSwitch";
 import { HomeIcon, AdminIcon } from "@/components/ui/Icons";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Header = () => {
   const router = useRouter();
+  const { logout } = useAuth();
 
   return (
     <motion.header
@@ -72,6 +74,16 @@ export const Header = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                onClick={logout}
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Logout
+              </Button>
+            </motion.div>
             <div className="relative">
               <div className="absolute inset-0 bg-primary/5 rounded-full blur-md" />
               <ThemeSwitch />
