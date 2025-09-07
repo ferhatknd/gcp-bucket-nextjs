@@ -22,11 +22,12 @@ A powerful Google Cloud Storage file browser and management system built with Ne
 
 ### Technical Features
 - **Flexible Server Architecture**: Pure Next.js for development, Express.js for production uploads
-- **Background Indexing**: Automatic bulk indexing of all directories
-- **Toggle State Persistence**: SQLite database for persistent file toggle states
+- **Background Indexing**: Automatic bulk indexing of all directories on startup
+- **Toggle State Persistence**: SQLite database for persistent file toggle states across sessions
 - **File Type Support**: ZIP, RAR, PDF, Office documents (10KB - 3GB)
-- **Persistent SQLite Cache**: No TTL - permanent caching for better performance
-- **Cloud Run Ready**: Docker configuration for Google Cloud Run deployment
+- **Optimized Admin Panel**: Cached API endpoints for faster file loading from SQLite instead of direct bucket queries
+- **Session Storage**: Persistent admin authentication without re-entering API key
+- **Cloud Run Ready**: Docker configuration for Google Cloud Run deployment with CI/CD pipeline
 
 ## 🛠️ Tech Stack
 
@@ -103,15 +104,28 @@ The advanced search system supports:
 - **Relevance Scoring**: Best matches appear first
 - **Subdirectory Search**: Searches current directory and all subdirectories
 
+## 🏗️ Admin Panel
+
+Access the admin panel at `/panel` with the following features:
+
+- **Cached File Loading**: Optimized performance using SQLite cache instead of direct bucket queries
+- **Session Storage**: API key persists across page refreshes - no need to re-authenticate
+- **Toggle State Management**: View and manage all file toggle states with persistent green highlighting
+- **Bulk Indexing**: Manual trigger button to force re-indexing of all directories
+- **Real-time Statistics**: View total files, total size, and cache statistics
+
 ## 📁 Project Structure
 
 ```
 ├── src/
 │   ├── app/              # Next.js App Router
-│   ├── components/       # React components
-│   ├── lib/             # Utilities and services
+│   │   ├── api/          # API routes (files, cached, toggle, directory)
+│   │   └── panel/        # Admin panel pages
+│   ├── components/       # React components (DirectoryBrowser, ToggleSwitch)
+│   ├── hooks/            # Custom hooks (useFileManagement, useAuth)
+│   ├── lib/             # Utilities and services (cloudStorage, sqliteCache)
 │   └── types/           # TypeScript definitions
-├── cache/               # SQLite database storage
+├── cache/               # SQLite database storage (file-cache.db)
 ├── server.ts           # Express.js server for uploads
 ├── Dockerfile          # Container configuration
 └── cloudbuild.yaml     # Google Cloud Build config

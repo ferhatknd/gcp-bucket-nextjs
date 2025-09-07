@@ -54,7 +54,7 @@ export function useFileManagement(disablePagination = false) {
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/files?all=true&search=${debouncedSearchTerm}&sort=${sortState.by}&order=${sortState.orders[sortState.by]}`,
+        `/api/files/cached?all=true&search=${debouncedSearchTerm}&sort=${sortState.by}&order=${sortState.orders[sortState.by]}`,
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");

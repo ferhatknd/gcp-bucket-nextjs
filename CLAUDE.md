@@ -123,3 +123,24 @@ Required environment variables (see `.env.example`):
     toggled_at INTEGER NOT NULL
   )
   ```
+
+## Admin Panel
+
+- **Location**: Available at `/panel` route
+- **Authentication**: Session storage for persistent API key (no re-authentication required on refresh)
+- **File Management**: Optimized file loading using cached API endpoint (`/api/files/cached`)
+- **Performance**: Admin panel fetches files from SQLite cache instead of direct bucket queries for faster loading
+- **Bulk Indexing**: Manual trigger button in Storage Stats component to force re-indexing of all directories
+
+## API Endpoints
+
+### File Operations
+- `/api/files` - Direct bucket file listing (slower, used for real-time data)
+- `/api/files/cached` - Cached file listing from SQLite (faster, used for admin panel)
+- `/api/directory` - Directory browsing with breadcrumb support
+
+### Cache Operations  
+- `/api/cache/bulk-index` - Background indexing of all directories
+
+### Toggle Operations
+- `/api/toggle` - GET/POST/DELETE operations for toggle states persistence
