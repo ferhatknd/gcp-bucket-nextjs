@@ -56,15 +56,13 @@ async function performBulkIndexing() {
     
     console.log(`Found ${allDirectories.length} directories to index`);
 
-    // Index each directory
+    // Index each directory (force re-indexing)
     for (const dirPath of allDirectories) {
-      if (!fileCache.isValid(dirPath)) {
-        indexingStats.currentPath = dirPath;
-        await indexDirectory(dirPath);
-        indexingStats.processed++;
-        
-        console.log(`Indexed ${dirPath} (${indexingStats.processed}/${indexingStats.total})`);
-      }
+      indexingStats.currentPath = dirPath;
+      await indexDirectory(dirPath);
+      indexingStats.processed++;
+      
+      console.log(`Indexed ${dirPath} (${indexingStats.processed}/${indexingStats.total})`);
     }
 
     const duration = Date.now() - indexingStats.startTime;
