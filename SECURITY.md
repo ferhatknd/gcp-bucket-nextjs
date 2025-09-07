@@ -35,12 +35,14 @@ openssl rand -hex 16
 - File/folder deletion  
 - File/folder renaming
 - Bulk indexing operations
+- Toggle state management (via /api/toggle endpoint)
 
 #### 🌐 Public (No Authentication Required)
 - Directory browsing
 - File search
 - File downloads
 - Cache statistics
+- Toggle state viewing (GET operations)
 
 ### Cloud Run Security Considerations
 
@@ -56,6 +58,7 @@ When deploying to Cloud Run:
 2. **Enable HTTPS**: Cloud Run provides HTTPS by default
 3. **Restrict Access**: Consider using Cloud Run IAM if needed
 4. **Monitor Logs**: Watch for suspicious access attempts
+5. **API Endpoint Protection**: Server middleware protects sensitive routes like /api/toggle
 
 ### Security Best Practices
 

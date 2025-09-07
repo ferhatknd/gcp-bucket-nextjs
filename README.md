@@ -6,12 +6,13 @@ A powerful Google Cloud Storage file browser and management system built with Ne
 
 ### Core Functionality
 - **📁 Directory Browser**: Navigate through entire GCS bucket directory structure with breadcrumb navigation
-- **🔘 Toggle States**: Apple-style toggle switches for files with persistent state and green background highlighting
+- **🔘 Toggle States**: Apple-style toggle switches for files with persistent state and green background highlighting (only shown for indexed directories)
 - **📤 File Upload**: Upload files and complete folders with preserved directory structure
 - **🔍 Advanced Search**: Google-like search with Fuse.js integration
 - **💾 Persistent Cache**: SQLite-based caching system for fast file browsing
 - **🌐 Turkish Character Support**: Unicode normalization for flexible Turkish character matching
 - **🔐 Environment-based Auth**: Authentication bypassed in development, active in production
+- **🧭 Fixed Navigation**: Persistent header navigation between Home (/) and Admin Panel (/panel)
 
 ### Search Capabilities
 - **Fuzzy Matching**: Typo-tolerant search that finds closest matches
@@ -23,11 +24,13 @@ A powerful Google Cloud Storage file browser and management system built with Ne
 ### Technical Features
 - **Flexible Server Architecture**: Pure Next.js for development, Express.js for production uploads
 - **Background Indexing**: Automatic bulk indexing of all directories on startup
-- **Toggle State Persistence**: SQLite database for persistent file toggle states across sessions
+- **Toggle State Persistence**: SQLite database for persistent file toggle states across sessions (restricted to indexed directories)
 - **File Type Support**: ZIP, RAR, PDF, Office documents (10KB - 3GB)
 - **Optimized Admin Panel**: Cached API endpoints for faster file loading from SQLite instead of direct bucket queries
 - **Session Storage**: Persistent admin authentication without re-entering API key
 - **Cloud Run Ready**: Docker configuration for Google Cloud Run deployment with CI/CD pipeline
+- **Clean URL Structure**: Uses proper routes (/, /panel) instead of query parameters
+- **Protected API Endpoints**: Server middleware protection for sensitive operations
 
 ## 🛠️ Tech Stack
 
@@ -108,11 +111,13 @@ The advanced search system supports:
 
 Access the admin panel at `/panel` with the following features:
 
+- **Fixed Header Navigation**: Persistent navigation between Home (/) and Admin Panel (/panel) views
 - **Cached File Loading**: Optimized performance using SQLite cache instead of direct bucket queries
 - **Session Storage**: API key persists across page refreshes - no need to re-authenticate
-- **Toggle State Management**: View and manage all file toggle states with persistent green highlighting
+- **Toggle State Management**: View and manage all file toggle states with persistent green highlighting (only for indexed files)
 - **Bulk Indexing**: Manual trigger button to force re-indexing of all directories
 - **Real-time Statistics**: View total files, total size, and cache statistics
+- **Clean URL Structure**: Direct routing to /panel instead of query parameters
 
 ## 📁 Project Structure
 
@@ -120,13 +125,18 @@ Access the admin panel at `/panel` with the following features:
 ├── src/
 │   ├── app/              # Next.js App Router
 │   │   ├── api/          # API routes (files, cached, toggle, directory)
-│   │   └── panel/        # Admin panel pages
-│   ├── components/       # React components (DirectoryBrowser, ToggleSwitch)
+│   │   ├── panel/        # Admin panel pages
+│   │   └── page.tsx      # Home page with directory browser
+│   ├── components/       # React components
+│   │   ├── file/         # DirectoryBrowser, ToggleSwitch, UploadDialog
+│   │   ├── layout/       # PanelHeader (fixed navigation)
+│   │   ├── panel/        # AdminFileManager, LoginForm
+│   │   └── ui/           # UI components (Button, SearchBar, Icons)
 │   ├── hooks/            # Custom hooks (useFileManagement, useAuth)
-│   ├── lib/             # Utilities and services (cloudStorage, sqliteCache)
+│   ├── lib/             # Utilities and services (cloudStorage, sqliteCache, fileCache)
 │   └── types/           # TypeScript definitions
 ├── cache/               # SQLite database storage (file-cache.db)
-├── server.ts           # Express.js server for uploads
+├── server.ts           # Express.js server with middleware protection
 ├── Dockerfile          # Container configuration
 └── cloudbuild.yaml     # Google Cloud Build config
 ```

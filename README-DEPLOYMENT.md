@@ -58,6 +58,8 @@ gcloud run deploy gcp-bucket-nextjs \
 2. **Memory**: 1GB recommended for SQLite cache + file processing
 3. **Cache**: SQLite cache is ephemeral in Cloud Run - will reset on restart
 4. **Cold starts**: First request may be slow due to cache rebuild
+5. **API Endpoints**: Toggle states and other sensitive endpoints are protected by server middleware
+6. **Admin Panel**: Access via /panel route with persistent session storage authentication
 
 ## Post-deployment
 

@@ -19,10 +19,19 @@ export function StorageStats({ totalSize, totalFiles }: StorageStatsProps) {
   const handleBulkIndex = async () => {
     setIsIndexing(true);
     try {
+      // Get API key from sessionStorage (where admin login stores it)
+      const apiKey = sessionStorage.getItem('adminApiKey');
+      
+      if (!apiKey) {
+        toast.error('Please log in again');
+        setIsIndexing(false);
+        return;
+      }
+
       const response = await fetch('/api/cache/bulk-index', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ADMIN_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
       });
@@ -34,7 +43,11 @@ export function StorageStats({ totalSize, totalFiles }: StorageStatsProps) {
         // Start polling for status
         const pollInterval = setInterval(async () => {
           try {
-            const statusResponse = await fetch('/api/cache/bulk-index');
+            const statusResponse = await fetch('/api/cache/bulk-index', {
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+              },
+            });
             const statusData = await statusResponse.json();
             setIndexingStatus(statusData);
             

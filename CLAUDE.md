@@ -25,7 +25,8 @@ This is a GCS file browser and upload service built with Next.js 15 and Google C
 
 ### Key Components
 - **Directory Browser**: Main interface for browsing the entire bucket structure with breadcrumb navigation
-- **Toggle States**: Apple-style toggle switches for files with persistent state in SQLite database
+- **Toggle States**: Apple-style toggle switches for files with persistent state in SQLite database (only shown for indexed directories)
+- **Fixed Header Navigation**: Persistent header with Home/Admin Panel switching that doesn't disappear during navigation
 - **File Upload**: Upload dialog with file/folder selection, preserves directory structure when uploading folders
 - **File Management**: Next.js API routes for directory listing, file operations (copy URL, download)  
 - **Caching System**: SQLite-based persistent cache for directory contents (5min TTL)
@@ -49,13 +50,15 @@ This is a GCS file browser and upload service built with Next.js 15 and Google C
 
 ### Special Features
 - **Breadcrumb Navigation**: Navigate through directory structure with clickable breadcrumbs
-- **Toggle Switches**: Apple-style toggle switches for files with green background highlighting and persistent state
+- **Toggle Switches**: Apple-style toggle switches for files with green background highlighting and persistent state (restricted to indexed/cached directories only)
 - **Upload Dialog**: Modal with file/folder selection, progress tracking, and directory structure preservation
 - **Multiple File Upload**: Support for selecting and uploading multiple files simultaneously
 - **Folder Upload**: Complete folder upload with preserved directory structure and subdirectories
 - **Search & Filter**: Real-time search within directory contents with Turkish character support
 - **Persistent Cache**: SQLite database survives server restarts
 - **Background Indexing**: Automatic indexing of all directories on startup
+- **Unified Navigation**: Fixed header with smooth transitions between home and admin views
+- **Clean URL Structure**: Uses proper routes (/, /panel) instead of query parameters
 
 ## Environment Configuration
 
@@ -112,9 +115,11 @@ Required environment variables (see `.env.example`):
 ## Toggle States System
 
 - **Toggle Switches**: Apple-style animated toggle switches using Framer Motion
+- **Visibility**: Toggle switches only appear for files in indexed/cached directories (`isCached` must be true)
 - **Persistent State**: Toggle states saved to SQLite database table `toggle_states`
 - **Visual Feedback**: Toggled files show green background highlighting (`bg-green-100/70`)
-- **API Endpoints**: `/api/toggle` for GET/POST/DELETE operations
+- **API Endpoints**: `/api/toggle` for GET/POST/DELETE operations (protected by server middleware)
+- **Server Protection**: `/api/toggle` endpoint added to allowed routes in `server.ts` middleware
 - **Database Schema**: 
   ```sql
   CREATE TABLE toggle_states (
@@ -128,9 +133,11 @@ Required environment variables (see `.env.example`):
 
 - **Location**: Available at `/panel` route
 - **Authentication**: Session storage for persistent API key (no re-authentication required on refresh)
+- **Navigation**: Fixed header navigation with Home (/) and Admin Panel (/panel) buttons
 - **File Management**: Optimized file loading using cached API endpoint (`/api/files/cached`)
 - **Performance**: Admin panel fetches files from SQLite cache instead of direct bucket queries for faster loading
 - **Bulk Indexing**: Manual trigger button in Storage Stats component to force re-indexing of all directories
+- **URL Structure**: Clean routing with "/" for home view and "/panel" for admin panel (no query parameters)
 
 ## API Endpoints
 
@@ -143,4 +150,12 @@ Required environment variables (see `.env.example`):
 - `/api/cache/bulk-index` - Background indexing of all directories
 
 ### Toggle Operations
-- `/api/toggle` - GET/POST/DELETE operations for toggle states persistence
+- `/api/toggle` - GET/POST/DELETE operations for toggle states persistence (protected by Express middleware)
+
+## Navigation System
+
+- **Fixed Header**: Persistent navigation header using PanelHeader component
+- **Route Structure**: Clean URL routing with "/" for home and "/panel" for admin
+- **View Management**: State-based view switching with `currentView` and `onViewChange` props
+- **Persistent Authentication**: Session storage maintains login state across route changes
+- **Smooth Transitions**: Framer Motion animations during view switching
