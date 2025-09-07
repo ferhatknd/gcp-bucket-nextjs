@@ -477,27 +477,32 @@ nextApp.prepare().then(() => {
       "/api/search", 
       "/api/download",
       "/api/cache/stats",
-      "/api/toggle"
+      "/api/toggle",
+      "/api/cache/bulk-index"  // Allow GET requests for progress checking
     ];
-    
-    // In development, add bulk-index to public routes
-    if (IS_DEV) {
-      publicRoutes.push("/api/cache/bulk-index");
-    }
     
     // Skip auth for public routes
     if (publicRoutes.some(route => req.path.startsWith(route))) {
       return next();
     }
     
-    // Protected routes require auth
+    // Protected routes require auth (only for POST requests)
     const protectedRoutes = [
       "/api/upload",
       "/api/upload-kernel", 
       "/api/delete",
-      "/api/rename",
-      "/api/cache/bulk-index"
+      "/api/rename"
     ];
+    
+    // POST requests to bulk-index require auth
+    if (req.method === "POST" && req.path === "/api/cache/bulk-index") {
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.split(" ")[1];
+      
+      if (!authHeader || !authHeader.startsWith("Bearer ") || token !== ADMIN_API_KEY) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+    }
     
     if (protectedRoutes.some(route => req.path.startsWith(route))) {
       const authHeader = req.headers.authorization;
