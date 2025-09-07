@@ -422,12 +422,15 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <ToggleSwitch
-                      checked={toggledFiles.has(item.fullPath)}
-                      onChange={(checked) => handleToggle(item.fullPath, checked)}
-                      size="sm"
-                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                    />
+                    {/* Only show toggle for items when directory is cached (indexed) */}
+                    {isCached && (
+                      <ToggleSwitch
+                        checked={toggledFiles.has(item.fullPath)}
+                        onChange={(checked) => handleToggle(item.fullPath, checked)}
+                        size="sm"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                      />
+                    )}
                     {item.isDirectory ? (
                       <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
                     ) : (

@@ -476,7 +476,8 @@ nextApp.prepare().then(() => {
       "/api/list",
       "/api/search", 
       "/api/download",
-      "/api/cache/stats"
+      "/api/cache/stats",
+      "/api/toggle"
     ];
     
     // In development, add bulk-index to public routes
@@ -518,7 +519,8 @@ nextApp.prepare().then(() => {
       req.path === "/api/upload-kernel" ||
       req.path === "/api/delete" ||
       req.path === "/api/rename" ||
-      req.path === "/api/cache/bulk-index";
+      req.path === "/api/cache/bulk-index" ||
+      req.path === "/api/toggle";
 
     if (req.method === "POST") {
       // Only allow POST requests to specific API upload routes
