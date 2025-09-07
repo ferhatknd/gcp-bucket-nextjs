@@ -88,12 +88,17 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    setAuthenticatedWithStorage(false);
+    setIsAuthenticated(false);
     setAdminApiKey("");
     if (typeof window !== 'undefined') {
       sessionStorage.clear();
     }
     toast.success("Logged out successfully");
+    
+    // Force page reload to clear any cached states
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return {

@@ -207,6 +207,46 @@ class SQLiteCache {
     return result.map(row => row.path);
   }
 
+  getAllEntries(): Map<string, CachedFile[]> {
+    const entries = new Map<string, CachedFile[]>();
+    
+    // Get all directory paths
+    const pathsStmt = this.db.prepare(`SELECT path FROM directory_cache ORDER BY path`);
+    const paths = pathsStmt.all() as Array<{ path: string }>;
+    
+    // For each path, get its files
+    const filesStmt = this.db.prepare(`
+      SELECT name, size, updated_at, is_directory, full_path, cached_at
+      FROM file_cache 
+      WHERE directory_path = ?
+      ORDER BY is_directory DESC, name ASC
+    `);
+    
+    for (const { path } of paths) {
+      const rows = filesStmt.all(path) as Array<{
+        name: string;
+        size: number | null;
+        updated_at: string | null;
+        is_directory: number;
+        full_path: string;
+        cached_at: number;
+      }>;
+
+      const items = rows.map(row => ({
+        name: row.name,
+        size: row.size || undefined,
+        updatedAt: row.updated_at || undefined,
+        isDirectory: Boolean(row.is_directory),
+        fullPath: row.full_path,
+        cachedAt: row.cached_at
+      }));
+
+      entries.set(path, items);
+    }
+    
+    return entries;
+  }
+
   isIndexingComplete(): boolean {
     const paths = this.getAllCachedPaths();
     return paths.includes('') && paths.length > 10;

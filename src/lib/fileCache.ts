@@ -64,6 +64,11 @@ class FileCache {
   getDatabaseSize(): number {
     return sqliteCache.getDatabaseSize();
   }
+
+  // Get all entries (directory path -> items map)
+  getAllEntries(): Map<string, CachedFile[]> {
+    return sqliteCache.getAllEntries();
+  }
 }
 
 export const fileCache = FileCache.getInstance();
