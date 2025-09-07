@@ -38,3 +38,6 @@ steps:
 
 images:
   - 'europe-west1-docker.pkg.dev/yillikplan/cloud-run-source-deploy/gcp-bucket-nextjs/gcp-bucket:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
