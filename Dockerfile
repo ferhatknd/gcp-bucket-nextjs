@@ -1,8 +1,11 @@
-# Use Node.js 18 Alpine
-FROM node:18-alpine
+# Use Node.js 20 Alpine (required for better-sqlite3)
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
+
+# Install Python and build tools (required for native dependencies)
+RUN apk add --no-cache python3 make g++
 
 # Copy package files
 COPY package*.json ./
