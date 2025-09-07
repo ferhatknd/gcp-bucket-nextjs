@@ -59,7 +59,7 @@ export const cloudStorage = {
     return await bucket.getFiles(options);
   },
   listDbfExtractedFiles: async () => {
-    const [files] = await bucket.getFiles({ prefix: 'dbf-extracted/', autoPaginate: true });
+    const [files] = await bucket.getFiles({ autoPaginate: true });
     return files;
   },
   createReadStream: (filename: string): Readable => {

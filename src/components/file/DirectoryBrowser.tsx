@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/ui/SearchBar";
-import { FolderIcon, FileIcon, ChevronRightIcon, HomeIcon, UploadIcon } from "@/components/ui/Icons";
+import { FolderIcon, FileIcon, ChevronRightIcon, HomeIcon, UploadIcon, CheckIcon } from "@/components/ui/Icons";
 import { UploadDialog } from "@/components/file/UploadDialog";
+import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
 import { formatFileSize } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,8 @@ interface DirectoryItem {
   updatedAt?: string;
   isDirectory: boolean;
   fullPath: string;
+  isInCache?: boolean;
+  isToggled?: boolean;
 }
 
 interface DirectoryBrowserProps {
@@ -22,7 +25,7 @@ interface DirectoryBrowserProps {
 }
 
 export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBrowserProps) {
-  const [currentPath, setCurrentPath] = useState("dbf-extracted/");
+  const [currentPath, setCurrentPath] = useState("");
   const [items, setItems] = useState<DirectoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,6 +41,8 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
   } | null>(null);
   const [globalSearchResults, setGlobalSearchResults] = useState<DirectoryItem[]>([]);
   const [isGlobalSearch, setIsGlobalSearch] = useState(false);
+  const [toggledFiles, setToggledFiles] = useState<Set<string>>(new Set());
+  const [togglesLoaded, setTogglesLoaded] = useState(false);
 
   const fetchDirectoryContents = async (path: string) => {
     setLoading(true);
@@ -54,6 +59,20 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     setLoading(false);
   };
 
+  const fetchToggleStates = async () => {
+    try {
+      const response = await fetch('/api/toggle');
+      const data = await response.json();
+      if (data.success && data.toggleStates) {
+        setToggledFiles(new Set(Object.keys(data.toggleStates)));
+        setTogglesLoaded(true);
+      }
+    } catch (error) {
+      console.error('Error fetching toggle states:', error);
+      setTogglesLoaded(true); // Mark as loaded even on error to prevent infinite loading
+    }
+  };
+
   useEffect(() => {
     fetchDirectoryContents(currentPath);
     setSearchTerm(""); // Clear search when changing directory
@@ -61,7 +80,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     setGlobalSearchResults([]); // Clear global search results
   }, [currentPath]);
 
-  // Auto-start indexing on first load
+  // Auto-start indexing and load toggle states on first load
   useEffect(() => {
     const startIndexing = async () => {
       try {
@@ -76,6 +95,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     };
     
     startIndexing();
+    fetchToggleStates(); // Load toggle states on component mount
 
     // Poll indexing status
     const pollStatus = () => {
@@ -98,7 +118,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
   }, []);
 
   // Search function for current directory and subdirectories
-  const performGlobalSearch = async (query: string) => {
+  const performGlobalSearch = useCallback(async (query: string) => {
     if (!query || query.trim() === "") {
       setIsGlobalSearch(false);
       setGlobalSearchResults([]);
@@ -117,6 +137,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
           isDirectory: result.isDirectory,
           size: result.size,
           updatedAt: result.updatedAt,
+          isInCache: result.isInCache || false,
         }));
         
         setGlobalSearchResults(mappedResults);
@@ -132,7 +153,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPath]);
 
   // Always perform search in current directory and subdirectories when there's a search term
   useEffect(() => {
@@ -146,7 +167,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, currentPath]); // Add currentPath dependency
+  }, [searchTerm, performGlobalSearch]); // Add currentPath dependency
 
   const handleItemClick = (item: DirectoryItem) => {
     if (item.isDirectory) {
@@ -166,6 +187,59 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     }
   };
 
+  const handleToggle = async (fullPath: string, checked: boolean) => {
+    // Optimistically update UI
+    setToggledFiles(prev => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(fullPath);
+      } else {
+        newSet.delete(fullPath);
+      }
+      return newSet;
+    });
+
+    // Save to database
+    try {
+      const response = await fetch('/api/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullPath,
+          isToggled: checked
+        })
+      });
+      
+      if (!response.ok) {
+        // Revert on error
+        setToggledFiles(prev => {
+          const newSet = new Set(prev);
+          if (!checked) {
+            newSet.add(fullPath);
+          } else {
+            newSet.delete(fullPath);
+          }
+          return newSet;
+        });
+        console.error('Failed to save toggle state');
+      }
+    } catch (error) {
+      // Revert on error
+      setToggledFiles(prev => {
+        const newSet = new Set(prev);
+        if (!checked) {
+          newSet.add(fullPath);
+        } else {
+          newSet.delete(fullPath);
+        }
+        return newSet;
+      });
+      console.error('Error saving toggle state:', error);
+    }
+  };
+
   const navigateUp = () => {
     const pathParts = currentPath.split('/').filter(Boolean);
     if (pathParts.length > 1) {
@@ -175,7 +249,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
   };
 
   const navigateToRoot = () => {
-    setCurrentPath("dbf-extracted/");
+    setCurrentPath("");
     setSearchTerm("");
     setIsGlobalSearch(false);
     setGlobalSearchResults([]);
@@ -185,9 +259,11 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
     const pathParts = currentPath.split('/').filter(Boolean);
     const breadcrumbs = [];
     
-    breadcrumbs.push({ name: "DBF Files", path: "dbf-extracted/" });
+    // Always start with Root
+    breadcrumbs.push({ name: "Root", path: "" });
     
-    for (let i = 1; i < pathParts.length; i++) {
+    // Add each path part as a breadcrumb
+    for (let i = 0; i < pathParts.length; i++) {
       const path = pathParts.slice(0, i + 1).join('/') + '/';
       const name = pathParts[i].replace(/[_-]/g, ' ');
       breadcrumbs.push({ name, path });
@@ -220,16 +296,16 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
           <span className="hidden sm:inline">Root</span>
         </Button>
 
-        {getBreadcrumbs().map((crumb, index) => (
+        {getBreadcrumbs().slice(1).map((crumb, index) => (
           <React.Fragment key={crumb.path}>
-            {index > 0 && <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />}
+            <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setCurrentPath(crumb.path)}
               className={cn(
                 "truncate max-w-32 sm:max-w-48",
-                index === getBreadcrumbs().length - 1 && "text-primary font-medium"
+                index === getBreadcrumbs().slice(1).length - 1 && "text-primary font-medium"
               )}
             >
               {crumb.name}
@@ -271,7 +347,7 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
             placeholder={isGlobalSearch ? `Search results in ${currentPath} and subdirectories...` : `Search in ${currentPath} and subdirectories...`}
           />
         </div>
-        {currentPath !== "dbf-extracted/" && (
+        {currentPath !== "" && (
           <Button variant="outline" onClick={navigateUp} className="gap-2">
             <ChevronRightIcon className="w-4 h-4 rotate-180" />
             Up
@@ -315,9 +391,11 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className={cn(
-                    "group flex items-center gap-4 p-4 rounded-lg border border-primary/10",
-                    "hover:border-primary/30 hover:bg-card/50 transition-all duration-200",
-                    item.isDirectory ? "cursor-pointer" : "cursor-default"
+                    "group flex items-center gap-4 p-4 rounded-lg border transition-all duration-200",
+                    item.isDirectory ? "cursor-pointer" : "cursor-default",
+                    toggledFiles.has(item.fullPath) 
+                      ? "bg-green-100/70 border-green-300/60 hover:bg-green-100/90 hover:border-green-300/80"
+                      : "border-primary/10 hover:border-primary/30 hover:bg-card/50"
                   )}
                   onClick={() => item.isDirectory && (isGlobalSearch ? handleGlobalItemClick(item) : handleItemClick(item))}
                 >
@@ -343,36 +421,44 @@ export function DirectoryBrowser({ onCopyAction, onDownloadAction }: DirectoryBr
                     )}
                   </div>
 
-                  {item.isDirectory ? (
-                    <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const encodedPath = encodeURIComponent(item.fullPath).replace(/%2F/g, '/');
-                          const publicUrl = `https://storage.googleapis.com/yillikplan-data/${encodedPath}`;
-                          navigator.clipboard.writeText(publicUrl);
-                        }}
-                      >
-                        Copy URL
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const encodedPath = encodeURIComponent(item.fullPath).replace(/%2F/g, '/');
-                          const publicUrl = `https://storage.googleapis.com/yillikplan-data/${encodedPath}`;
-                          window.open(publicUrl, '_blank');
-                        }}
-                      >
-                        Download
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <ToggleSwitch
+                      checked={toggledFiles.has(item.fullPath)}
+                      onChange={(checked) => handleToggle(item.fullPath, checked)}
+                      size="sm"
+                      onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                    />
+                    {item.isDirectory ? (
+                      <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const encodedPath = encodeURIComponent(item.fullPath).replace(/%2F/g, '/');
+                            const publicUrl = `https://storage.googleapis.com/yillikplan-data/${encodedPath}`;
+                            navigator.clipboard.writeText(publicUrl);
+                          }}
+                        >
+                          Copy URL
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const encodedPath = encodeURIComponent(item.fullPath).replace(/%2F/g, '/');
+                            const publicUrl = `https://storage.googleapis.com/yillikplan-data/${encodedPath}`;
+                            window.open(publicUrl, '_blank');
+                          }}
+                        >
+                          Download
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               ))
             )}

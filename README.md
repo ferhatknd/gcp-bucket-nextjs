@@ -5,11 +5,13 @@ A powerful Google Cloud Storage file browser and management system built with Ne
 ## 🚀 Features
 
 ### Core Functionality
-- **📁 Directory Browser**: Navigate through GCS bucket directory structure with breadcrumb navigation
+- **📁 Directory Browser**: Navigate through entire GCS bucket directory structure with breadcrumb navigation
+- **🔘 Toggle States**: Apple-style toggle switches for files with persistent state and green background highlighting
 - **📤 File Upload**: Upload files and complete folders with preserved directory structure
 - **🔍 Advanced Search**: Google-like search with Fuse.js integration
 - **💾 Persistent Cache**: SQLite-based caching system for fast file browsing
 - **🌐 Turkish Character Support**: Unicode normalization for flexible Turkish character matching
+- **🔐 Environment-based Auth**: Authentication bypassed in development, active in production
 
 ### Search Capabilities
 - **Fuzzy Matching**: Typo-tolerant search that finds closest matches
@@ -19,8 +21,9 @@ A powerful Google Cloud Storage file browser and management system built with Ne
 - **Real-time Results**: Instant search across 1000+ files with scoring
 
 ### Technical Features
-- **Dual Server Architecture**: Express.js for uploads, Next.js for file operations
+- **Flexible Server Architecture**: Pure Next.js for development, Express.js for production uploads
 - **Background Indexing**: Automatic bulk indexing of all directories
+- **Toggle State Persistence**: SQLite database for persistent file toggle states
 - **File Type Support**: ZIP, RAR, PDF, Office documents (10KB - 3GB)
 - **Persistent SQLite Cache**: No TTL - permanent caching for better performance
 - **Cloud Run Ready**: Docker configuration for Google Cloud Run deployment
@@ -37,7 +40,7 @@ A powerful Google Cloud Storage file browser and management system built with Ne
 ## 📋 Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 22+
 - Google Cloud Storage bucket
 - Service account with Storage permissions
 
@@ -62,6 +65,10 @@ cp .env.example .env.local
 
 4. **Start development server**
 ```bash
+# Pure Next.js development (recommended)
+npx next dev
+
+# Or Express server (for production-like environment)
 npm run dev
 ```
 

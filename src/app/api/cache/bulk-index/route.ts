@@ -98,7 +98,7 @@ async function getAllDirectories(): Promise<string[]> {
     }
   }
   
-  await exploreDirectory('dbf-extracted/');
+  await exploreDirectory('');
   return directories;
 }
 

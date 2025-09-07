@@ -5,7 +5,7 @@ import Fuse from 'fuse.js';
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get("q");
-  const currentPath = searchParams.get("currentPath") || "dbf-extracted/";
+  const currentPath = searchParams.get("currentPath") || "";
 
   if (!query || query.trim() === "") {
     return NextResponse.json({ results: [] });
@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
       isDirectory: result.item.isDirectory,
       size: result.item.size,
       updatedAt: result.item.updatedAt,
+      isInCache: true, // Items found in search are by definition in cache since we're searching from cache
       score: (1 - (result.score || 0)) * 100, // Convert Fuse score to 0-100 scale
     }));
 

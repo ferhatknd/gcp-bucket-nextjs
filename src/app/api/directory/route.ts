@@ -4,7 +4,7 @@ import { fileCache } from "@/lib/fileCache";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const path = searchParams.get("path") || "dbf-extracted/";
+  const path = searchParams.get("path") || "";
 
   try {
     // Check cache first
@@ -31,16 +31,20 @@ export async function GET(request: NextRequest) {
       updatedAt?: string;
       isDirectory: boolean;
       fullPath: string;
+      isInCache?: boolean;
     }> = [];
 
     // Add subdirectories
     for (const dirPrefix of subdirectories) {
       const dirName = dirPrefix.slice(path.length).replace(/\/$/, '');
       if (dirName) {
+        // Check if this directory is in cache
+        const isInCache = fileCache.isValid(dirPrefix);
         items.push({
           name: dirName,
           isDirectory: true,
           fullPath: dirPrefix,
+          isInCache,
         });
       }
     }
@@ -54,12 +58,15 @@ export async function GET(request: NextRequest) {
       if (relativeName.includes('/') || !relativeName) continue;
       
       const metadata = await cloudStorage.getFileMetadata(fileName);
+      // For files, we consider them "in cache" if they exist in the current directory's cache
+      const isInCache = true; // Files in current directory are always considered cached since we're fetching them
       items.push({
         name: relativeName,
         size: parseInt(String(metadata.size) || "0", 10),
         updatedAt: metadata.updated,
         isDirectory: false,
         fullPath: fileName,
+        isInCache,
       });
     }
 

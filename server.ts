@@ -479,6 +479,11 @@ nextApp.prepare().then(() => {
       "/api/cache/stats"
     ];
     
+    // In development, add bulk-index to public routes
+    if (IS_DEV) {
+      publicRoutes.push("/api/cache/bulk-index");
+    }
+    
     // Skip auth for public routes
     if (publicRoutes.some(route => req.path.startsWith(route))) {
       return next();

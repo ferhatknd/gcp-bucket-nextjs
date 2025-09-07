@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 - `npm run dev` - Start development server using tsx (runs server.ts directly)
+- `npx next dev` - Start pure Next.js development server (recommended for local development)
 - `npm run build` - Build Next.js application for production
 - `npm run start` - Build and start production server
 - `npm run lint` - Run ESLint for code quality checks
@@ -14,15 +15,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a GCS file browser and upload service built with Next.js 15 and Google Cloud Storage. The application focuses on browsing and managing files in the `dbf-extracted/` directory with upload capabilities. Uses a hybrid architecture:
+This is a GCS file browser and upload service built with Next.js 15 and Google Cloud Storage. The application provides full bucket browsing and file management capabilities with upload functionality and file toggle states persistence.
 
 ### Server Architecture
-- **Custom Express Server**: `server.ts` handles file uploads with busboy for multipart parsing
-- **Next.js App Router**: API routes in `src/app/api/` handle file operations (list, delete, rename, download)
-- **Dual Server Setup**: Express handles uploads, Next.js handles other operations
+- **Development**: Pure Next.js development server with authentication bypass for local development
+- **Production**: Custom Express Server (`server.ts`) handles file uploads with busboy for multipart parsing
+- **Next.js App Router**: API routes in `src/app/api/` handle file operations (list, delete, rename, download, toggle states)
+- **Authentication**: Automatically bypassed in development mode (`NODE_ENV=development`), active in production
 
 ### Key Components
-- **Directory Browser**: Main interface for browsing `dbf-extracted/` directory structure with breadcrumb navigation
+- **Directory Browser**: Main interface for browsing the entire bucket structure with breadcrumb navigation
+- **Toggle States**: Apple-style toggle switches for files with persistent state in SQLite database
 - **File Upload**: Upload dialog with file/folder selection, preserves directory structure when uploading folders
 - **File Management**: Next.js API routes for directory listing, file operations (copy URL, download)  
 - **Caching System**: SQLite-based persistent cache for directory contents (5min TTL)
@@ -30,7 +33,8 @@ This is a GCS file browser and upload service built with Next.js 15 and Google C
 
 ### Storage & Services
 - **Google Cloud Storage**: Primary storage backend via `src/lib/cloudStorage.ts`
-- **SQLite Cache**: Persistent file cache in `cache/file-cache.db` for directory listings
+- **SQLite Cache**: Persistent file cache in `cache/file-cache.db` for directory listings and toggle states
+- **Toggle State Persistence**: SQLite table for persistent file toggle states across sessions
 - **File Type Support**: ZIP, RAR archives, PDF documents, Microsoft Office files (Word, Excel, PowerPoint) supported (minimum 10KB, maximum 3GB)
 - **Size Constraints**: 
   - General uploads: 10KB to 3GB
@@ -45,6 +49,7 @@ This is a GCS file browser and upload service built with Next.js 15 and Google C
 
 ### Special Features
 - **Breadcrumb Navigation**: Navigate through directory structure with clickable breadcrumbs
+- **Toggle Switches**: Apple-style toggle switches for files with green background highlighting and persistent state
 - **Upload Dialog**: Modal with file/folder selection, progress tracking, and directory structure preservation
 - **Multiple File Upload**: Support for selecting and uploading multiple files simultaneously
 - **Folder Upload**: Complete folder upload with preserved directory structure and subdirectories
@@ -59,13 +64,19 @@ Required environment variables (see `.env.example`):
 - `GOOGLE_CLOUD_BUCKET_NAME` - GCS bucket name  
 - `WEB_URL` - Application base URL
 - `CDN_URL` - CDN URL for file serving
-- `ADMIN_API_KEY` - Admin panel authentication
+- `ADMIN_API_KEY` - Admin panel authentication (only required in production)
 - `MAINTENANCE_MODE` - Enable/disable maintenance mode
 - `PORT` - Server port (default: 3000)
 
+## Authentication
+
+- **Development Mode**: Authentication is automatically bypassed when `NODE_ENV=development`
+- **Production Mode**: Admin panel requires API key authentication via `ADMIN_API_KEY` environment variable
+- **Admin Panel**: Located at `/panel` - provides file management interface
+
 ## File Browser Flow
 
-1. **Directory Browsing**: Navigate through `dbf-extracted/` directory structure
+1. **Directory Browsing**: Navigate through the entire bucket directory structure
 2. **Caching**: Directory contents cached in SQLite for fast loading
 3. **Search**: Real-time filtering of files within current directory and subdirectories with flexible Turkish character matching
 4. **Upload**: Upload files/folders to current directory via dialog
@@ -97,3 +108,18 @@ Required environment variables (see `.env.example`):
 - **Multiple Terms**: All search words must be found in filename (AND operation)
 - **Bidirectional**: Works both ways (Turkish ↔ ASCII equivalents)
 - **Performance**: Simple substring search with regex fallback for complex cases
+
+## Toggle States System
+
+- **Toggle Switches**: Apple-style animated toggle switches using Framer Motion
+- **Persistent State**: Toggle states saved to SQLite database table `toggle_states`
+- **Visual Feedback**: Toggled files show green background highlighting (`bg-green-100/70`)
+- **API Endpoints**: `/api/toggle` for GET/POST/DELETE operations
+- **Database Schema**: 
+  ```sql
+  CREATE TABLE toggle_states (
+    full_path TEXT PRIMARY KEY,
+    is_toggled BOOLEAN NOT NULL DEFAULT FALSE,
+    toggled_at INTEGER NOT NULL
+  )
+  ```

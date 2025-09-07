@@ -61,6 +61,15 @@ class SQLiteCache {
       )
     `);
 
+    // Create toggle states table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS toggle_states (
+        full_path TEXT PRIMARY KEY,
+        is_toggled BOOLEAN NOT NULL DEFAULT FALSE,
+        toggled_at INTEGER NOT NULL
+      )
+    `);
+
     // Create indexes for better performance
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_file_cache_directory_path 
@@ -200,7 +209,7 @@ class SQLiteCache {
 
   isIndexingComplete(): boolean {
     const paths = this.getAllCachedPaths();
-    return paths.includes('dbf-extracted/') && paths.length > 10;
+    return paths.includes('') && paths.length > 10;
   }
 
   // Clean up expired cache entries
@@ -239,6 +248,48 @@ class SQLiteCache {
     } catch {
       return 0;
     }
+  }
+
+  // Toggle states management
+  setToggleState(fullPath: string, isToggled: boolean): void {
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO toggle_states (full_path, is_toggled, toggled_at)
+      VALUES (?, ?, ?)
+    `);
+    stmt.run(fullPath, isToggled ? 1 : 0, Date.now());
+  }
+
+  getToggleState(fullPath: string): boolean {
+    const stmt = this.db.prepare(`
+      SELECT is_toggled FROM toggle_states WHERE full_path = ?
+    `);
+    const result = stmt.get(fullPath) as { is_toggled: number } | undefined;
+    return result ? Boolean(result.is_toggled) : false;
+  }
+
+  getAllToggleStates(): Record<string, boolean> {
+    const stmt = this.db.prepare(`
+      SELECT full_path, is_toggled FROM toggle_states WHERE is_toggled = 1
+    `);
+    const results = stmt.all() as Array<{ full_path: string; is_toggled: number }>;
+    
+    const toggleStates: Record<string, boolean> = {};
+    results.forEach(row => {
+      toggleStates[row.full_path] = Boolean(row.is_toggled);
+    });
+    
+    return toggleStates;
+  }
+
+  removeToggleState(fullPath: string): void {
+    const stmt = this.db.prepare(`
+      DELETE FROM toggle_states WHERE full_path = ?
+    `);
+    stmt.run(fullPath);
+  }
+
+  clearAllToggleStates(): void {
+    this.db.exec(`DELETE FROM toggle_states`);
   }
 }
 

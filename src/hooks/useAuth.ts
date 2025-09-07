@@ -3,11 +3,20 @@ import { toast } from "react-hot-toast";
 
 export const useAuth = () => {
   const [adminApiKey, setAdminApiKey] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // In development mode, start as authenticated
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const [isAuthenticated, setIsAuthenticated] = useState(isDevelopment);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const authenticate = async () => {
+    // Skip authentication in development mode
+    if (isDevelopment) {
+      setIsAuthenticated(true);
+      toast.success("Development mode - Authentication bypassed");
+      return;
+    }
+
     if (!adminApiKey.trim()) {
       setError("Please enter an API key");
       toast.error("Please enter an API key");
