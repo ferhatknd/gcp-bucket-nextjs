@@ -469,6 +469,11 @@ nextApp.prepare().then(() => {
   // Auth middleware for protected routes
   // @ts-ignore
   const authMiddleware = (req: Request, res: Response, next) => {
+    // Skip all authentication in development mode
+    if (IS_DEV) {
+      return next();
+    }
+    
     const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
     
     // Public routes (no auth required)

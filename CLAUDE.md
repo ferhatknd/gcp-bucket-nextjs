@@ -115,9 +115,17 @@ Required environment variables (see `.env.example`):
 ## Toggle States System
 
 - **Toggle Switches**: Apple-style animated toggle switches using Framer Motion
-- **Visibility**: Toggle switches only appear for files in indexed/cached directories (`isCached` must be true)
+- **Visibility Logic**: Toggle switches only appear for files in indexed/cached directories (`isCached` must be true)
+- **Indexing Flow**: 
+  1. User navigates to directory → Files load immediately from bucket (no toggle switches yet)
+  2. Background process indexes directory → Files saved to SQLite cache
+  3. Toggle switches appear for all files in that directory
+  4. This indicates indexing is complete for that directory
+- **Real-time Updates**: When entering a directory, new files are detected and displayed immediately, then indexed in background
+- **Cache-First Display**: Files show instantly from bucket, then toggle switches appear after SQLite indexing
 - **Persistent State**: Toggle states saved to SQLite database table `toggle_states`
 - **Visual Feedback**: Toggled files show green background highlighting (`bg-green-100/70`)
+- **Progress Indicator**: Presence of toggle switches = directory fully indexed and cached
 - **API Endpoints**: `/api/toggle` for GET/POST/DELETE operations (protected by server middleware)
 - **Server Protection**: `/api/toggle` endpoint added to allowed routes in `server.ts` middleware
 - **Database Schema**: 
